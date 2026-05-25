@@ -1,0 +1,227 @@
+import React, { useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users } from 'lucide-react';
+import '../App.css';
+
+function PartyDetail() {
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const defaultParty = {
+    id: id,
+    title: '未知的揪團',
+    type: '未知',
+    level: '休閒',
+    time: '未知時間',
+    location: '未知地點',
+    duration: '2 小時',
+    price: '免費',
+    facilities: ['冷氣', '飲水機', '廁所', '淋浴間'],
+    currentPlayers: 1,
+    maxPlayers: 4,
+    currentWaitlist: 0,
+    maxWaitlist: 2,
+    host: '主揪人',
+    description: '這是一個預設的揪團說明。大家一起開心打球，友誼第一！記得帶自己的裝備喔。',
+    participants: ['主揪人'],
+    waitlist: []
+  };
+
+  const initialParty = location.state?.party || defaultParty;
+  
+  const [party, setParty] = useState(initialParty);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [joinType, setJoinType] = useState(null);
+  const [toastMsg, setToastMsg] = useState('');
+  const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  const handleJoin = () => {
+    if (party.currentPlayers < party.maxPlayers) {
+      setParty(prev => ({
+        ...prev,
+        currentPlayers: prev.currentPlayers + 1,
+        participants: [...prev.participants, '我 (使用者)']
+      }));
+      setJoinType('normal');
+      setHasJoined(true);
+      showToast('報名成功！你已在正取名單中。');
+    } else if (party.currentWaitlist < party.maxWaitlist) {
+      setParty(prev => ({
+        ...prev,
+        currentWaitlist: prev.currentWaitlist + 1,
+        waitlist: [...prev.waitlist, '我 (使用者)']
+      }));
+      setJoinType('waitlist');
+      setHasJoined(true);
+      showToast('已進入候補名單！有人退出時系統會依序遞補。');
+    }
+  };
+
+  const handleCancel = () => {
+    if (joinType === 'normal') {
+      setParty(prev => ({
+        ...prev,
+        currentPlayers: prev.currentPlayers - 1,
+        participants: prev.participants.filter(p => p !== '我 (使用者)')
+      }));
+    } else if (joinType === 'waitlist') {
+      setParty(prev => ({
+        ...prev,
+        currentWaitlist: prev.currentWaitlist - 1,
+        waitlist: prev.waitlist.filter(p => p !== '我 (使用者)')
+      }));
+    }
+    setHasJoined(false);
+    setJoinType(null);
+    showToast('已成功取消報名。');
+  };
+
+  const isFull = party.currentPlayers >= party.maxPlayers;
+  const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
+  
+  return (
+    <div className="home-container">
+      <nav className="navbar">
+        <div className="navbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>不揪ㄛ</div>
+        <div className="navbar-actions">
+          <button className="btn-outline" onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}>
+            <ArrowLeft size={16} /> 返回大廳
+          </button>
+        </div>
+      </nav>
+
+      <main className="main-content" style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '20px' }}>
+        
+        <div className="detail-card" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
+          
+          {/* 標題與設施 (背景透明度調整) */}
+          <div style={{ minHeight: '220px', background: 'linear-gradient(135deg, rgba(121, 149, 165, 0.85), rgba(75, 98, 114, 0.85))', padding: '60px 40px 30px 40px', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <span className="party-type" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}>{party.type}</span>
+              <span className="party-level" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{party.level || '休閒'}</span>
+            </div>
+            
+            <h1 className="detail-title" style={{ color: 'white', marginTop: '16px', marginBottom: '16px' }}>{party.title}</h1>
+            
+            {/* 設施標籤移到標題下方 */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {(party.facilities || ['冷氣', '飲水機', '廁所', '淋浴間']).map((f, i) => (
+                <span key={i} style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle2 size={14} /> {f}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ padding: '40px' }}>
+            <div className="detail-info-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', paddingBottom: '32px' }}>
+              <div className="detail-info-item" style={{ gap: '12px' }}>
+                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
+                  <Clock size={22} color="#7995a5" />
+                </div>
+                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.time}</div>
+              </div>
+
+              <div className="detail-info-item" style={{ gap: '12px' }}>
+                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
+                  <Timer size={22} color="#7995a5" />
+                </div>
+                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.duration || '2 小時'}</div>
+              </div>
+
+              <div className="detail-info-item" style={{ gap: '12px' }}>
+                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
+                  <MapPin size={22} color="#7995a5" />
+                </div>
+                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.location}</div>
+              </div>
+
+              <div className="detail-info-item" style={{ gap: '12px' }}>
+                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
+                  <DollarSign size={22} color="#7995a5" />
+                </div>
+                <div style={{ fontWeight: '800', fontSize: '16px', color: '#7995a5' }}>{party.price || '免費'}</div>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={20} /> 備註與說明</h3>
+              <p className="detail-desc">{party.description || '大家一起開心打球，友誼第一！記得帶自己的水壺與毛巾。'}</p>
+            </div>
+
+            {/* 參與與候補名單按鈕 */}
+            <div className="detail-section" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <button className="btn-outline" style={{ flex: '1 1 200px', padding: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '700', borderRadius: '12px', backgroundColor: '#f8fafc' }} onClick={() => setShowListModal('participants')}>
+                <Users size={20} /> 查看參與名單 ({party.currentPlayers}/{party.maxPlayers})
+              </button>
+              {(party.currentWaitlist > 0 || isFull) && (
+                <button className="btn-outline" style={{ flex: '1 1 200px', padding: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '700', borderRadius: '12px', borderColor: '#fcd34d', color: '#d97706', backgroundColor: '#fffbeb' }} onClick={() => setShowListModal('waitlist')}>
+                  ⏳ 查看候補名單 ({party.currentWaitlist}/{party.maxWaitlist})
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* 底部報名列 */}
+      <div className="bottom-action-bar">
+        {hasJoined ? (
+          <button className="btn-action cancel" onClick={handleCancel}>
+            取消報名
+          </button>
+        ) : isFull && isWaitlistFull ? (
+          <button className="btn-action disabled" disabled>
+            已完全額滿
+          </button>
+        ) : isFull ? (
+          <button className="btn-action waitlist" onClick={handleJoin}>
+            排候補名單
+          </button>
+        ) : (
+          <button className="btn-action join" onClick={handleJoin}>
+            報名參加
+          </button>
+        )}
+      </div>
+
+      {/* 名單 Modal */}
+      {showListModal && (
+        <div className="modal-overlay" onClick={() => setShowListModal(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{showListModal === 'participants' ? `👥 參與名單 (${party.currentPlayers}/${party.maxPlayers})` : `⏳ 候補名單 (${party.currentWaitlist}/${party.maxWaitlist})`}</h3>
+              <button className="modal-close" onClick={() => setShowListModal(null)}>&times;</button>
+            </div>
+            <div className="participant-list" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
+              {(showListModal === 'participants' ? party.participants : party.waitlist).map((p, idx) => (
+                <div key={idx} className="participant-item">
+                  <div className="participant-avatar" style={showListModal === 'waitlist' ? { backgroundColor: '#94a3b8' } : {}}>{p.charAt(0)}</div>
+                  <span>{p} {showListModal === 'participants' && idx === 0 && <span className="host-badge">主揪</span>}</span>
+                </div>
+              ))}
+              {showListModal === 'waitlist' && party.waitlist.length === 0 && (
+                <p style={{ color: 'var(--text-muted)' }}>目前無人候補</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="toast-message">
+          {toastMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default PartyDetail;
