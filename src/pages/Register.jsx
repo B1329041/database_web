@@ -7,7 +7,6 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [level, setLevel] = useState('休閒');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -16,10 +15,9 @@ function Register() {
       alert('兩次密碼輸入不一致喔！');
       return;
     }
-    console.log('Register attempt:', { nickname, email, password, level });
+    console.log('Register attempt:', { nickname, email, password });
     // TODO: Connect to backend API
-    alert('註冊成功！');
-    navigate('/home');
+    navigate('/setup-profile');
   };
 
   return (
@@ -81,20 +79,6 @@ function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="level">自身程度 (註冊後可更改)</label>
-            <select
-              id="level"
-              className="form-input"
-              value={level}
-              onChange={(e) => setLevel(e.target.value)}
-            >
-              <option value="新手">新手</option>
-              <option value="休閒">休閒</option>
-              <option value="高手">高手</option>
-            </select>
           </div>
           
           <button type="submit" className="login-button" style={{ marginTop: '10px' }}>
