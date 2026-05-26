@@ -283,7 +283,7 @@ function Home() {
                 <input required type="text" className="form-input" placeholder="例如：今晚巨蛋鬥牛缺二" value={newParty.title} onChange={e => setNewParty({...newParty, title: e.target.value})} />
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
                 {/* 左欄：活動細節 */}
                 <div>
                   <div className="form-group">
@@ -320,47 +320,6 @@ function Home() {
                       <option value="5 小時">5 小時</option>
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">人數需求 (最少 ~ 最多)</label>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input required type="number" min="1" max="20" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
-                      <span style={{ color: '#64748b' }}>~</span>
-                      <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">入場費 / 費用</label>
-                    <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                      <button 
-                        type="button" 
-                        className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
-                        style={{ border: '1px solid #e2e8f0' }}
-                        onClick={() => setNewParty({...newParty, isFree: true})}
-                      >
-                        免費
-                      </button>
-                      <button 
-                        type="button" 
-                        className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
-                        style={{ border: '1px solid #e2e8f0' }}
-                        onClick={() => setNewParty({...newParty, isFree: false})}
-                      >
-                        付費 / 均分
-                      </button>
-                    </div>
-                    {!newParty.isFree && (
-                      <input 
-                        type="number" 
-                        className="form-input" 
-                        placeholder="請輸入場地費總金額，後續會自動依據人數分攤" 
-                        value={newParty.price} 
-                        onChange={e => setNewParty({...newParty, price: e.target.value})}
-                        min="0"
-                        max="10000"
-                        required
-                      />
-                    )}
-                  </div>
                 </div>
 
                 {/* 右欄：地點資訊 */}
@@ -393,18 +352,63 @@ function Home() {
                     <label className="form-label">詳細地點說明 (選填)</label>
                     <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">揪團說明 / 備註 (選填)</label>
-                    <textarea 
-                      className="form-input" 
-                      rows="3" 
-                      placeholder="寫下你的規則、或想對大家說的話..." 
-                      value={newParty.description} 
-                      onChange={e => setNewParty({...newParty, description: e.target.value})}
-                      style={{ resize: 'none' }}
-                    />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div className="form-group">
+                  <label className="form-label">人數需求 (最少 ~ 最多)</label>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <input required type="number" min="1" max="20" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
+                    <span style={{ color: '#64748b' }}>~</span>
+                    <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
                   </div>
                 </div>
+                <div className="form-group">
+                  <label className="form-label">入場費 / 費用</label>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
+                    <button 
+                      type="button" 
+                      className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
+                      style={{ border: '1px solid #e2e8f0', flex: 1 }}
+                      onClick={() => setNewParty({...newParty, isFree: true})}
+                    >
+                      免費
+                    </button>
+                    <button 
+                      type="button" 
+                      className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
+                      style={{ border: '1px solid #e2e8f0', flex: 1 }}
+                      onClick={() => setNewParty({...newParty, isFree: false})}
+                    >
+                      付費 / 均分
+                    </button>
+                  </div>
+                  {!newParty.isFree && (
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      placeholder="輸入總額(自動平分)" 
+                      value={newParty.price} 
+                      onChange={e => setNewParty({...newParty, price: e.target.value})}
+                      min="0"
+                      max="10000"
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">揪團說明 / 備註 (選填)</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  placeholder="寫下你的規則、或想對大家說的話..." 
+                  value={newParty.description} 
+                  onChange={e => setNewParty({...newParty, description: e.target.value})}
+                  style={{ resize: 'none' }}
+                />
               </div>
 
               <button type="submit" className="login-button" style={{ marginTop: '16px' }}>確認發起</button>
