@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../App.css';
 
@@ -17,8 +17,8 @@ function Register() {
     }
     console.log('Register attempt:', { nickname, email, password });
     // TODO: Connect to backend API
-    alert('註冊成功！請登入');
-    navigate('/');
+    alert('註冊成功！');
+    navigate('/home');
   };
 
   return (

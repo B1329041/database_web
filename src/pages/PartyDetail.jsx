@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users } from 'lucide-react';
 import '../App.css';

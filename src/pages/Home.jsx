@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CloudSun, MapPin, Clock } from 'lucide-react';
 import '../App.css';
@@ -47,6 +47,7 @@ function Home() {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFilterRegion, setSelectedFilterRegion] = useState('all');
   const [newParty, setNewParty] = useState({ 
     title: '', 
     type: '籃球', 
