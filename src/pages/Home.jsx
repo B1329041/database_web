@@ -8,11 +8,11 @@ function Home() {
 
   // 模擬大廳假資料
   const [parties, setParties] = useState([
-    { id: 1, title: '今晚巨蛋鬥牛', type: '籃球', level: '高手', time: '今晚 20:00', location: '桃園巨蛋室外籃球場', currentPlayers: 5, maxPlayers: 6, currentWaitlist: 0, maxWaitlist: 2, participants: ['阿傑', '小明', '老王', '建國', '阿翔'], waitlist: [] },
-    { id: 2, title: '假日缺一咖打牌', type: '麻將', level: '休閒', time: '本週六 14:00', location: '中壢車站附近桌遊店', currentPlayers: 4, maxPlayers: 4, currentWaitlist: 1, maxWaitlist: 2, participants: ['主揪A', '玩家B', '玩家C', '玩家D'], waitlist: ['候補仔'] },
-    { id: 3, title: '下班輕鬆打羽球', type: '羽球', level: '新手', time: '明天 19:00', location: '桃園國民運動中心', currentPlayers: 2, maxPlayers: 4, currentWaitlist: 0, maxWaitlist: 2, participants: ['羽球控', '小白'], waitlist: [] },
-    { id: 4, title: '週末休閒打桌球', type: '桌球', level: '休閒', time: '週日 10:00', location: '平鎮國民運動中心', currentPlayers: 1, maxPlayers: 2, currentWaitlist: 0, maxWaitlist: 2, participants: ['桌球大師'], waitlist: [] },
-    { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園虎頭山公園', currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
+    { id: 1, title: '今晚巨蛋鬥牛', type: '籃球', level: '高手', time: '今晚 20:00', location: '桃園巨蛋室外籃球場', facilities: ['飲水機', '廁所'], currentPlayers: 5, maxPlayers: 6, currentWaitlist: 0, maxWaitlist: 2, participants: ['阿傑', '小明', '老王', '建國', '阿翔'], waitlist: [] },
+    { id: 2, title: '假日缺一咖打牌', type: '麻將', level: '休閒', time: '本週六 14:00', location: '中壢車站附近桌遊店', facilities: ['冷氣', '飲水機', '廁所'], currentPlayers: 4, maxPlayers: 4, currentWaitlist: 1, maxWaitlist: 2, participants: ['主揪A', '玩家B', '玩家C', '玩家D'], waitlist: ['候補仔'] },
+    { id: 3, title: '下班輕鬆打羽球', type: '羽球', level: '新手', time: '明天 19:00', location: '桃園國民運動中心', facilities: ['冷氣', '飲水機', '廁所', '淋浴間'], currentPlayers: 2, maxPlayers: 4, currentWaitlist: 0, maxWaitlist: 2, participants: ['羽球控', '小白'], waitlist: [] },
+    { id: 4, title: '週末休閒打桌球', type: '桌球', level: '休閒', time: '週日 10:00', location: '平鎮國民運動中心', facilities: ['冷氣', '飲水機', '廁所', '淋浴間'], currentPlayers: 1, maxPlayers: 2, currentWaitlist: 0, maxWaitlist: 2, participants: ['桌球大師'], waitlist: [] },
+    { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園虎頭山公園', facilities: ['廁所'], currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
   ]);
 
   // 台灣行政區與球場資料 (縣市 -> 區域 -> 球場)
@@ -44,6 +44,36 @@ function Home() {
       '北屯區': ['台中洲際棒球場', '北屯球場', '其他'],
       '其他區': ['其他']
     }
+  };
+
+  // 場地設施資料庫
+  const venueFacilities = {
+    '桃園國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '桃園巨蛋室外籃球場': ['飲水機', '廁所'],
+    '中壢國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '平鎮國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '蘆竹國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '大安運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '信義運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '中山運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '內湖運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '板橋國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '新莊國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '三重國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '中和運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
+    '台中市政府球場': ['飲水機', '廁所'],
+    '逢甲大學體育館': ['冷氣', '飲水機', '廁所'],
+    '中原大學體育館': ['冷氣', '飲水機', '廁所'],
+    '長庚大學體育館': ['冷氣', '飲水機', '廁所'],
+    '台大體育館': ['冷氣', '飲水機', '廁所'],
+    '新勢公園籃球場': ['飲水機', '廁所'],
+    '光明河濱公園': ['廁所'],
+    '陽明運動公園': ['廁所'],
+    '桃園虎頭山公園': ['廁所'],
+    '象山公園球場': ['飲水機', '廁所'],
+    '新生公園': ['廁所'],
+    '彩虹河濱公園': ['廁所'],
+    '其他': ['基本設施']
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,6 +128,7 @@ function Home() {
       maxWaitlist: 2,
       participants: ['我 (主揪)'],
       waitlist: [],
+      facilities: venueFacilities[newParty.venue] || ['基本設施'],
       description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
     setParties([party, ...parties]);
