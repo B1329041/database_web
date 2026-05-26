@@ -173,7 +173,7 @@ function PartyDetail() {
                     <>
                       {party.price}
                       <span style={{ marginLeft: '8px', color: '#ef4444', fontSize: '14px' }}>
-                        (約 ${Math.ceil(parseFloat(party.price.replace(/[^0-9.]/g, '')) / party.maxPlayers)} / 人)
+                        (${Math.ceil(parseFloat(party.price.replace(/[^0-9.]/g, '')) / party.maxPlayers)} / 人)
                       </span>
                     </>
                   ) : (
