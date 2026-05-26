@@ -56,7 +56,8 @@ function Home() {
     district: '桃園區', 
     venue: '桃園國民運動中心',
     note: '', 
-    price: '免費',
+    isFree: true,
+    price: '',
     time: '', 
     maxPlayers: 4 
   });
@@ -67,8 +68,20 @@ function Home() {
 
   const handleCreateParty = (e) => {
     e.preventDefault();
+
+    // 費用驗證
+    if (!newParty.isFree) {
+      const priceNum = parseFloat(newParty.price);
+      if (priceNum < 0 || priceNum > 10000) {
+        alert('費用金額必須在 0 到 10,000 之間喔！');
+        return;
+      }
+    }
+
     const venueDisplay = newParty.venue === '其他' ? '' : newParty.venue;
     const fullLocation = `${newParty.city}${newParty.district} ${venueDisplay} ${newParty.note}`.trim();
+    
+    const priceDisplay = newParty.isFree ? '免費' : (newParty.price ? `$${newParty.price} (總額分攤)` : '面議');
     
     const party = {
       id: Date.now(),
@@ -77,7 +90,7 @@ function Home() {
       level: newParty.level,
       time: newParty.time.replace('T', ' '),
       location: fullLocation,
-      price: newParty.price,
+      price: priceDisplay,
       currentPlayers: 1, // 發起人自己
       maxPlayers: parseInt(newParty.maxPlayers, 10),
       currentWaitlist: 0,
@@ -96,6 +109,8 @@ function Home() {
       district: '桃園區', 
       venue: '桃園國民運動中心',
       note: '', 
+      isFree: true,
+      price: '',
       time: '', 
       maxPlayers: 4 
     });
@@ -268,7 +283,36 @@ function Home() {
               </div>
               <div className="form-group">
                 <label className="form-label">入場費 / 費用</label>
-                <input type="text" className="form-input" placeholder="例如：免費、150/人、或場地費均分" value={newParty.price} onChange={e => setNewParty({...newParty, price: e.target.value})} />
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
+                  <button 
+                    type="button" 
+                    className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
+                    style={{ border: '1px solid #e2e8f0' }}
+                    onClick={() => setNewParty({...newParty, isFree: true})}
+                  >
+                    免費
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
+                    style={{ border: '1px solid #e2e8f0' }}
+                    onClick={() => setNewParty({...newParty, isFree: false})}
+                  >
+                    付費 / 均分
+                  </button>
+                </div>
+                {!newParty.isFree && (
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    placeholder="請輸入場地費總金額，後續會自動依據人數分攤" 
+                    value={newParty.price} 
+                    onChange={e => setNewParty({...newParty, price: e.target.value})}
+                    min="0"
+                    max="10000"
+                    required
+                  />
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">程度</label>

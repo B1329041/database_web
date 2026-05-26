@@ -167,9 +167,21 @@ function PartyDetail() {
 
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <DollarSign size={20} color="#7995a5" />
-                <span style={{ color: '#64748b', fontWeight: '600' }}>價格：</span>
-                <span style={{ fontWeight: '800', color: '#1e293b' }}>{party.price || '免費'}</span>
+                <span style={{ color: '#64748b', fontWeight: '600' }}> 價格：</span>
+                <span style={{ fontWeight: '800', color: '#1e293b' }}>
+                  {party.price && party.price.includes('總額分攤') ? (
+                    <>
+                      {party.price}
+                      <span style={{ marginLeft: '8px', color: '#ef4444', fontSize: '14px' }}>
+                        (約 ${Math.ceil(parseFloat(party.price.replace(/[^0-9.]/g, '')) / party.maxPlayers)} / 人)
+                      </span>
+                    </>
+                  ) : (
+                    party.price || '免費'
+                  )}
+                </span>
               </div>
+
             </div>
 
             <div className="detail-section">
