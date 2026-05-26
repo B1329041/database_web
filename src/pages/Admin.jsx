@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText } from 'lucide-react';
 import '../App.css';
 
 function Admin() {
@@ -18,6 +18,13 @@ function Admin() {
   const [announcements, setAnnouncements] = useState([
     { id: 1, title: '系統維護通知', content: '我們將於週日凌晨進行系統更新。', date: '2026-05-24' },
     { id: 2, title: '新場地上線！', content: '現在可以選擇「台中洲際棒球場」進行揪團囉。', date: '2026-05-20' },
+  ]);
+
+  // 模擬使用者回饋資料
+  const [feedbacks, setFeedbacks] = useState([
+    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25' },
+    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25' },
+    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24' },
   ]);
 
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
@@ -91,6 +98,12 @@ function Admin() {
             onClick={() => setActiveTab('announcements')}
           >
             <Bell size={20} /> 系統公告
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'feedbacks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('feedbacks')}
+          >
+            <MessageSquareText size={20} /> 使用者回饋
           </button>
         </nav>
 
@@ -286,6 +299,59 @@ function Admin() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* 使用者回饋 Tab */}
+        {activeTab === 'feedbacks' && (
+          <div>
+            <h2 style={{ marginBottom: '32px' }}>使用者建議與回饋</h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {feedbacks.map(f => (
+                <div key={f.id} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', backgroundColor: '#f1f5f9', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#7995a5' }}>
+                        {f.user.charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '15px' }}>{f.user}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>回報日期：{f.date}</div>
+                      </div>
+                    </div>
+                    <span style={{ 
+                      fontSize: '12px', 
+                      fontWeight: '700', 
+                      padding: '4px 10px', 
+                      borderRadius: '6px',
+                      backgroundColor: f.type === '錯誤' ? '#fee2e2' : (f.type === '場地' ? '#fef3c7' : '#e0f2fe'),
+                      color: f.type === '錯誤' ? '#ef4444' : (f.type === '場地' ? '#d97706' : '#0284c7')
+                    }}>
+                      {f.type}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '15px', color: '#475569', lineHeight: '1.6', paddingLeft: '52px' }}>
+                    {f.content}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px' }}>
+                    <button className="btn-outline" style={{ padding: '6px 16px', fontSize: '13px' }} onClick={() => alert('已標記為處理中')}>標記處理</button>
+                    <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} onClick={() => {
+                      if(window.confirm('確定要刪除這條回饋嗎？')) {
+                        setFeedbacks(feedbacks.filter(fb => fb.id !== f.id));
+                      }
+                    }}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {feedbacks.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>
+                  目前沒有待處理的回饋。
+                </div>
+              )}
             </div>
           </div>
         )}

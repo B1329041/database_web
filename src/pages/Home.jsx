@@ -77,6 +77,8 @@ function Home() {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '建議', content: '' });
   const [selectedFilterRegion, setSelectedFilterRegion] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [newParty, setNewParty] = useState({ 
@@ -98,6 +100,14 @@ function Home() {
 
   const handleLogout = () => {
     navigate('/');
+  };
+
+  const handleSendFeedback = (e) => {
+    e.preventDefault();
+    console.log('Feedback submitted:', feedback);
+    alert('感謝您的回饋！管理員將會盡快查看。');
+    setIsFeedbackOpen(false);
+    setFeedback({ type: '建議', content: '' });
   };
 
   const handleCreateParty = (e) => {
@@ -184,6 +194,7 @@ function Home() {
       <nav className="navbar">
         <div className="navbar-logo">不揪ㄛ</div>
         <div className="navbar-actions">
+          <button className="btn-outline" onClick={() => setIsFeedbackOpen(true)}>意見回饋</button>
           <button className="btn-primary" onClick={() => navigate('/profile')}>個人</button>
           <button className="btn-outline" onClick={handleLogout}>登出</button>
         </div>
@@ -420,6 +431,42 @@ function Home() {
               </div>
 
               <button type="submit" className="login-button" style={{ marginTop: '16px' }}>確認發起</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 意見回饋 Modal */}
+      {isFeedbackOpen && (
+        <div className="modal-overlay" onClick={() => setIsFeedbackOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>意見回饋</h3>
+              <button className="modal-close" onClick={() => setIsFeedbackOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSendFeedback}>
+              <div className="form-group">
+                <label className="form-label">回饋類型</label>
+                <select className="form-input" value={feedback.type} onChange={e => setFeedback({...feedback, type: e.target.value})}>
+                  <option value="建議">功能建議</option>
+                  <option value="錯誤">問題回報 (Bug)</option>
+                  <option value="場地">場地相關</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">內容說明</label>
+                <textarea 
+                  required 
+                  className="form-input" 
+                  rows="5" 
+                  placeholder="請詳細描述您的想法或遇到的問題..." 
+                  value={feedback.content} 
+                  onChange={e => setFeedback({...feedback, content: e.target.value})}
+                  style={{ resize: 'none' }}
+                />
+              </div>
+              <button type="submit" className="login-button" style={{ marginTop: '10px' }}>送出回饋</button>
             </form>
           </div>
         </div>
