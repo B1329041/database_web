@@ -70,7 +70,7 @@ function Login() {
           </div>
           
           <div className="form-group">
-            <label className="form-label" htmlFor="level">自身程度 (登入後設定)</label>
+            <label className="form-label" htmlFor="level">自身程度 (登入後可更改)</label>
             <select
               id="level"
               className="form-input"
