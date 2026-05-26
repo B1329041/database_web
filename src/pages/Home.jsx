@@ -78,6 +78,7 @@ function Home() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFilterRegion, setSelectedFilterRegion] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('全部');
   const [newParty, setNewParty] = useState({ 
     title: '', 
     type: '籃球', 
@@ -206,19 +207,26 @@ function Home() {
               ))}
             </select>
             <div className="filter-chips">
-              <span className="chip active">全部</span>
-              <span className="chip">籃球</span>
-              <span className="chip">麻將</span>
-              <span className="chip">桌球</span>
-              <span className="chip">羽球</span>
-              <span className="chip">排球</span>
+              {['全部', '籃球', '麻將', '桌球', '羽球', '排球'].map(cat => (
+                <span 
+                  key={cat} 
+                  className={`chip ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {cat}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
         {/* 卡片列表 */}
         <div className="party-grid">
-          {parties.map(party => {
+          {parties
+            .filter(party => selectedFilterRegion === 'all' || party.location.includes(selectedFilterRegion))
+            .filter(party => selectedCategory === '全部' || party.type === selectedCategory)
+            .map(party => {
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
             let statusText = `缺 ${party.maxPlayers - party.currentPlayers} 人`;
