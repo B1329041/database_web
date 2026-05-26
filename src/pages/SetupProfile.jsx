@@ -5,11 +5,13 @@ import '../App.css';
 function SetupProfile() {
   const [level, setLevel] = useState('休閒');
   const [bio, setBio] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [phone, setPhone] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Setup Profile:', { level, bio });
+    console.log('Setup Profile:', { level, bio, birthday, phone });
     // TODO: Connect to backend API
     alert('設定完成，歡迎加入！');
     navigate('/home');
@@ -36,6 +38,29 @@ function SetupProfile() {
               <option value="休閒">休閒</option>
               <option value="高手">高手</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="birthday">生日 (選填)</label>
+            <input
+              id="birthday"
+              type="date"
+              className="form-input"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="phone">聯絡電話 (選填)</label>
+            <input
+              id="phone"
+              type="tel"
+              className="form-input"
+              placeholder="09xxxxxxxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
 
           <div className="form-group">
