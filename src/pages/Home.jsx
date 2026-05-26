@@ -91,6 +91,7 @@ function Home() {
     price: '',
     time: '', 
     duration: '2 小時',
+    minPlayers: 2,
     maxPlayers: 4 
   });
 
@@ -125,6 +126,7 @@ function Home() {
       location: fullLocation,
       price: priceDisplay,
       currentPlayers: 1, // 發起人自己
+      minPlayers: parseInt(newParty.minPlayers, 10),
       maxPlayers: parseInt(newParty.maxPlayers, 10),
       currentWaitlist: 0,
       maxWaitlist: 2,
@@ -148,6 +150,7 @@ function Home() {
       price: '',
       time: '', 
       duration: '2 小時',
+      minPlayers: 2,
       maxPlayers: 4 
     });
   };
@@ -269,7 +272,7 @@ function Home() {
       {/* 發起揪團 Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '750px' }}>
             <div className="modal-header">
               <h3>發起新揪團</h3>
               <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
@@ -279,118 +282,132 @@ function Home() {
                 <label className="form-label">揪團標題</label>
                 <input required type="text" className="form-input" placeholder="例如：今晚巨蛋鬥牛缺二" value={newParty.title} onChange={e => setNewParty({...newParty, title: e.target.value})} />
               </div>
-              <div className="form-group">
-                <label className="form-label">活動類型</label>
-                <select className="form-input" value={newParty.type} onChange={e => setNewParty({...newParty, type: e.target.value})}>
-                  <option value="籃球">籃球</option>
-                  <option value="麻將">麻將</option>
-                  <option value="桌球">桌球</option>
-                  <option value="羽球">羽球</option>
-                  <option value="排球">排球</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">地點 (縣市)</label>
-                <select className="form-input" value={newParty.city} onChange={handleCityChange}>
-                  {Object.keys(taiwanRegions).map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">地點 (區域)</label>
-                <select className="form-input" value={newParty.district} onChange={handleDistrictChange}>
-                  {Object.keys(taiwanRegions[newParty.city]).map(dist => (
-                    <option key={dist} value={dist}>{dist}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">地點 (場館/球場)</label>
-                <select className="form-input" value={newParty.venue} onChange={e => setNewParty({...newParty, venue: e.target.value})}>
-                  {taiwanRegions[newParty.city][newParty.district].map(v => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">詳細地點說明 (選填)</label>
-                <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">揪團說明 / 備註 (選填)</label>
-                <textarea 
-                  className="form-input" 
-                  rows="3" 
-                  placeholder="寫下你的規則、或想對大家說的話..." 
-                  value={newParty.description} 
-                  onChange={e => setNewParty({...newParty, description: e.target.value})}
-                  style={{ resize: 'none' }}
-                />
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* 左欄：活動細節 */}
+                <div>
+                  <div className="form-group">
+                    <label className="form-label">活動類型</label>
+                    <select className="form-input" value={newParty.type} onChange={e => setNewParty({...newParty, type: e.target.value})}>
+                      <option value="籃球">籃球</option>
+                      <option value="麻將">麻將</option>
+                      <option value="桌球">桌球</option>
+                      <option value="羽球">羽球</option>
+                      <option value="排球">排球</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">程度</label>
+                    <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
+                      <option value="新手">新手</option>
+                      <option value="休閒">休閒</option>
+                      <option value="高手">高手</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">活動時間</label>
+                    <input type="datetime-local" className="form-input" value={newParty.time} onChange={e => setNewParty({...newParty, time: e.target.value})} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">預計時長</label>
+                    <select className="form-input" value={newParty.duration} onChange={e => setNewParty({...newParty, duration: e.target.value})}>
+                      <option value="1 小時">1 小時</option>
+                      <option value="1.5 小時">1.5 小時</option>
+                      <option value="2 小時">2 小時</option>
+                      <option value="2.5 小時">2.5 小時</option>
+                      <option value="3 小時">3 小時</option>
+                      <option value="4 小時">4 小時</option>
+                      <option value="5 小時">5 小時</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">人數需求 (最少 ~ 最多)</label>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <input required type="number" min="1" max="20" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
+                      <span style={{ color: '#64748b' }}>~</span>
+                      <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">入場費 / 費用</label>
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
+                      <button 
+                        type="button" 
+                        className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
+                        style={{ border: '1px solid #e2e8f0' }}
+                        onClick={() => setNewParty({...newParty, isFree: true})}
+                      >
+                        免費
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
+                        style={{ border: '1px solid #e2e8f0' }}
+                        onClick={() => setNewParty({...newParty, isFree: false})}
+                      >
+                        付費 / 均分
+                      </button>
+                    </div>
+                    {!newParty.isFree && (
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        placeholder="請輸入場地費總金額，後續會自動依據人數分攤" 
+                        value={newParty.price} 
+                        onChange={e => setNewParty({...newParty, price: e.target.value})}
+                        min="0"
+                        max="10000"
+                        required
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* 右欄：地點資訊 */}
+                <div>
+                  <div className="form-group">
+                    <label className="form-label">地點 (縣市)</label>
+                    <select className="form-input" value={newParty.city} onChange={handleCityChange}>
+                      {Object.keys(taiwanRegions).map(city => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">地點 (區域)</label>
+                    <select className="form-input" value={newParty.district} onChange={handleDistrictChange}>
+                      {Object.keys(taiwanRegions[newParty.city]).map(dist => (
+                        <option key={dist} value={dist}>{dist}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">地點 (場館/球場)</label>
+                    <select className="form-input" value={newParty.venue} onChange={e => setNewParty({...newParty, venue: e.target.value})}>
+                      {taiwanRegions[newParty.city][newParty.district].map(v => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">詳細地點說明 (選填)</label>
+                    <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">揪團說明 / 備註 (選填)</label>
+                    <textarea 
+                      className="form-input" 
+                      rows="3" 
+                      placeholder="寫下你的規則、或想對大家說的話..." 
+                      value={newParty.description} 
+                      onChange={e => setNewParty({...newParty, description: e.target.value})}
+                      style={{ resize: 'none' }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">入場費 / 費用</label>
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                  <button 
-                    type="button" 
-                    className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
-                    style={{ border: '1px solid #e2e8f0' }}
-                    onClick={() => setNewParty({...newParty, isFree: true})}
-                  >
-                    免費
-                  </button>
-                  <button 
-                    type="button" 
-                    className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
-                    style={{ border: '1px solid #e2e8f0' }}
-                    onClick={() => setNewParty({...newParty, isFree: false})}
-                  >
-                    付費 / 均分
-                  </button>
-                </div>
-                {!newParty.isFree && (
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    placeholder="請輸入場地費總金額，後續會自動依據人數分攤" 
-                    value={newParty.price} 
-                    onChange={e => setNewParty({...newParty, price: e.target.value})}
-                    min="0"
-                    max="10000"
-                    required
-                  />
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">程度</label>
-                <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
-                  <option value="新手">新手</option>
-                  <option value="休閒">休閒</option>
-                  <option value="高手">高手</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">活動時間</label>
-                <input type="datetime-local" className="form-input" value={newParty.time} onChange={e => setNewParty({...newParty, time: e.target.value})} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">預計時長</label>
-                <select className="form-input" value={newParty.duration} onChange={e => setNewParty({...newParty, duration: e.target.value})}>
-                  <option value="1 小時">1 小時</option>
-                  <option value="1.5 小時">1.5 小時</option>
-                  <option value="2 小時">2 小時</option>
-                  <option value="2.5 小時">2.5 小時</option>
-                  <option value="3 小時">3 小時</option>
-                  <option value="4 小時">4 小時</option>
-                  <option value="5 小時">5 小時</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">人數需求</label>
-                <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
-              </div>
-              <button type="submit" className="login-button" style={{ marginTop: '10px' }}>確認發起</button>
+              <button type="submit" className="login-button" style={{ marginTop: '16px' }}>確認發起</button>
             </form>
           </div>
         </div>
