@@ -579,6 +579,8 @@
   .profile-sidebar {
     flex: 1;
     width: 100%;
+  }
+}
 /* --- Party Detail 樣式 --- */
 .btn-back-floating {
   position: absolute;
@@ -702,16 +704,15 @@
   display: flex;
   justify-content: center;
   z-index: 100;
-  width: 90%;
-  max-width: 400px;
 }
 .btn-action {
   width: 100%;
-  padding: 16px 48px;
+  white-space: nowrap;
+  padding: 16px;
   font-size: 18px;
   font-weight: 800;
   border: none;
-  border-radius: 50px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s;
   color: white;
@@ -722,12 +723,14 @@
 }
 .btn-action.join:hover {
   background-color: #647b8a;
+  transform: translateY(-2px);
 }
 .btn-action.waitlist {
-  background-color: #f59e0b;
+  background-color: #7995a5;
 }
 .btn-action.waitlist:hover {
-  background-color: #d97706;
+  background-color: #647b8a;
+  transform: translateY(-2px);
 }
 .btn-action.cancel {
   background-color: #ef4444;

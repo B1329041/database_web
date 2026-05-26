@@ -120,43 +120,41 @@ function PartyDetail() {
           </div>
 
           <div style={{ padding: '40px' }}>
-            <div className="detail-info-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', paddingBottom: '32px' }}>
-              <div className="detail-info-item" style={{ gap: '12px' }}>
-                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
-                  <Clock size={22} color="#7995a5" />
-                </div>
-                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.time}</div>
+            <div className="detail-info-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', paddingBottom: '32px' }}>
+              <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <Clock size={20} color="#7995a5" />
+                <span style={{ color: '#64748b', fontWeight: '600' }}>時間：</span>
+                <span style={{ fontWeight: '800' }}>{party.time}</span>
               </div>
 
-              <div className="detail-info-item" style={{ gap: '12px' }}>
-                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
-                  <Timer size={22} color="#7995a5" />
-                </div>
-                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.duration || '2 小時'}</div>
+              <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <Timer size={20} color="#7995a5" />
+                <span style={{ color: '#64748b', fontWeight: '600' }}>時長：</span>
+                <span style={{ fontWeight: '800' }}>{party.duration || '2 小時'}</span>
               </div>
 
-              <div className="detail-info-item" style={{ gap: '12px' }}>
-                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
-                  <MapPin size={22} color="#7995a5" />
-                </div>
-                <div style={{ fontWeight: '700', fontSize: '16px' }}>{party.location}</div>
+              <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <MapPin size={20} color="#7995a5" />
+                <span style={{ color: '#64748b', fontWeight: '600' }}>地點：</span>
+                <span style={{ fontWeight: '800' }}>{party.location}</span>
               </div>
 
-              <div className="detail-info-item" style={{ gap: '12px' }}>
-                <div style={{ backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex' }}>
-                  <DollarSign size={22} color="#7995a5" />
-                </div>
-                <div style={{ fontWeight: '800', fontSize: '16px', color: '#7995a5' }}>{party.price || '免費'}</div>
+              <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <DollarSign size={20} color="#7995a5" />
+                <span style={{ color: '#64748b', fontWeight: '600' }}>價格：</span>
+                <span style={{ fontWeight: '800', color: '#1e293b' }}>{party.price || '免費'}</span>
               </div>
             </div>
 
             <div className="detail-section">
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={20} /> 備註與說明</h3>
-              <p className="detail-desc">{party.description || '大家一起開心打球，友誼第一！記得帶自己的水壺與毛巾。'}</p>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><Info size={20} /> 備註與說明</h3>
+              <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <p className="detail-desc" style={{ margin: 0, lineHeight: '1.6' }}>{party.description || '大家一起開心打球，友誼第一！記得帶自己的水壺與毛巾。'}</p>
+              </div>
             </div>
 
             {/* 參與與候補名單按鈕 */}
-            <div className="detail-section" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="detail-section" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '32px', marginBottom: '32px' }}>
               <button className="btn-outline" style={{ flex: '1 1 200px', padding: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '700', borderRadius: '12px', backgroundColor: '#f8fafc' }} onClick={() => setShowListModal('participants')}>
                 <Users size={20} /> 查看參與名單 ({party.currentPlayers}/{party.maxPlayers})
               </button>
@@ -166,31 +164,32 @@ function PartyDetail() {
                 </button>
               )}
             </div>
+
+            {/* 報名參加按鈕 (居中顯示於名單按鈕下方) */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {hasJoined ? (
+                <button className="btn-action cancel" onClick={handleCancel}>
+                  取消報名
+                </button>
+              ) : isFull && isWaitlistFull ? (
+                <button className="btn-action disabled" disabled>
+                  已完全額滿
+                </button>
+              ) : isFull ? (
+                <button className="btn-action waitlist" style={{ width: '100%' }} onClick={handleJoin}>
+                  排候補
+                </button>
+              ) : (
+                <button className="btn-action join" style={{ width: '100%' }} onClick={handleJoin}>
+                  報名參加
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </main>
 
       {/* 底部報名列 */}
-      <div className="bottom-action-bar">
-        {hasJoined ? (
-          <button className="btn-action cancel" onClick={handleCancel}>
-            取消報名
-          </button>
-        ) : isFull && isWaitlistFull ? (
-          <button className="btn-action disabled" disabled>
-            已完全額滿
-          </button>
-        ) : isFull ? (
-          <button className="btn-action waitlist" onClick={handleJoin}>
-            排候補名單
-          </button>
-        ) : (
-          <button className="btn-action join" onClick={handleJoin}>
-            報名參加
-          </button>
-        )}
-      </div>
-
       {/* 名單 Modal */}
       {showListModal && (
         <div className="modal-overlay" onClick={() => setShowListModal(null)}>
