@@ -7,11 +7,14 @@ function SetupProfile() {
   const [bio, setBio] = useState('');
   const [birthday, setBirthday] = useState('');
   const [phone, setPhone] = useState('');
+  const [line, setLine] = useState('');
+  const [fb, setFb] = useState('');
+  const [ig, setIg] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Setup Profile:', { level, bio, birthday, phone });
+    console.log('Setup Profile:', { level, bio, birthday, phone, line, fb, ig });
     // TODO: Connect to backend API
     alert('設定完成，歡迎加入！');
     navigate('/home');
@@ -60,6 +63,42 @@ function SetupProfile() {
               placeholder="09xxxxxxxx"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="line">LINE ID (選填)</label>
+            <input
+              id="line"
+              type="text"
+              className="form-input"
+              placeholder="輸入 LINE ID"
+              value={line}
+              onChange={(e) => setLine(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="fb">Facebook (選填)</label>
+            <input
+              id="fb"
+              type="text"
+              className="form-input"
+              placeholder="輸入個人首頁網址或名稱"
+              value={fb}
+              onChange={(e) => setFb(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="ig">Instagram 帳號 (選填)</label>
+            <input
+              id="ig"
+              type="text"
+              className="form-input"
+              placeholder="輸入 IG 帳號 (例如: @nojo_tw)"
+              value={ig}
+              onChange={(e) => setIg(e.target.value)}
             />
           </div>
 
