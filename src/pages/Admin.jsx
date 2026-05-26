@@ -37,10 +37,21 @@ function Admin() {
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
 
+  // Demo 工具相關狀態
+  const [demoReputation, setDemoReputation] = useState(90);
+  const [weatherIndex, setWeatherIndex] = useState(80);
+
   // Demo 工具相關邏輯
   const handleUpdatePartyStatus = (id, newStatus, newTime) => {
     setParties(parties.map(p => p.id === id ? { ...p, status: newStatus, time: newTime || p.time } : p));
     alert(`房間狀態已變更為：${newStatus}`);
+  };
+
+  const getReputationStatus = (score) => {
+    if (score <= 40) return { label: '永久停權 (Ban Forever)', color: '#ef4444' };
+    if (score <= 50) return { label: '觀察中 (重回 65, +0.5d 懲罰)', color: '#f59e0b' };
+    if (score <= 60) return { label: '警告 (禁開房間)', color: '#fcd34d' };
+    return { label: '狀態良好', color: '#10b981' };
   };
 
   const handleAddVenue = (e) => {
@@ -422,14 +433,26 @@ function Admin() {
                 {/* 身份快速切換 */}
                 <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <UserCircle size={20} color="#7995a5" /> 模擬身份登入
+                    <UserCircle size={20} color="#7995a5" /> 模擬玩家信譽設定
                   </h3>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('已模擬：新手用戶登入 (信譽 60)')}>
-                      新手/黑名單
+                  <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '14px', color: '#64748b' }}>目前模擬積分：<span style={{ fontWeight: '800', fontSize: '18px', color: '#1e293b' }}>{demoReputation}</span></div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: getReputationStatus(demoReputation).color, marginTop: '4px' }}>
+                      系統狀態：{getReputationStatus(demoReputation).label}
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#ef4444' }} onClick={() => setDemoReputation(40)}>
+                      40 (Ban Forever)
                     </button>
-                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('已模擬：資深用戶登入 (信譽 99)')}>
-                      優良老手
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#f59e0b' }} onClick={() => setDemoReputation(50)}>
+                      50 (懲罰/觀察)
+                    </button>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#fcd34d' }} onClick={() => setDemoReputation(60)}>
+                      60 (警告/禁創房)
+                    </button>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#10b981' }} onClick={() => setDemoReputation(90)}>
+                      90 (恢復正常)
                     </button>
                   </div>
                 </div>
@@ -437,16 +460,33 @@ function Admin() {
                 {/* 天氣/系統狀態控制 */}
                 <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CloudRain size={20} color="#7995a5" /> 系統環境模擬
+                    <CloudRain size={20} color="#7995a5" /> 運動適合指數 (天氣系統)
                   </h3>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('天氣已變更為：暴雨 (暫停戶外推薦)')}>
-                      模擬暴雨
-                    </button>
-                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('系統已重置為初始狀態')}>
-                      <RefreshCcw size={16} /> 重置所有數據
-                    </button>
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700' }}>適合程度</span>
+                      <span style={{ fontSize: '16px', fontWeight: '800', color: weatherIndex > 50 ? '#10b981' : '#ef4444' }}>{weatherIndex}%</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={weatherIndex} 
+                      onChange={(e) => setWeatherIndex(parseInt(e.target.value, 10))}
+                      style={{ width: '100%', cursor: 'pointer', accentColor: '#7995a5' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                      <span>0% (暴雨危險)</span>
+                      <span>100% (晴朗舒適)</span>
+                    </div>
                   </div>
+                  <button className="btn-outline" style={{ width: '100%' }} onClick={() => {
+                    setDemoReputation(90);
+                    setWeatherIndex(80);
+                    alert('系統已重置為初始狀態');
+                  }}>
+                    <RefreshCcw size={16} /> 重置所有 Demo 數據
+                  </button>
                 </div>
 
               </div>
