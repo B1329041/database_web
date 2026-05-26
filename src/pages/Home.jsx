@@ -56,6 +56,7 @@ function Home() {
     district: '桃園區', 
     venue: '桃園國民運動中心',
     note: '', 
+    description: '',
     isFree: true,
     price: '',
     time: '', 
@@ -97,7 +98,7 @@ function Home() {
       maxWaitlist: 2,
       participants: ['我 (主揪)'],
       waitlist: [],
-      description: '這是我剛發起的揪團，歡迎大家來玩！'
+      description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
     setParties([party, ...parties]);
     setIsModalOpen(false);
@@ -109,6 +110,7 @@ function Home() {
       district: '桃園區', 
       venue: '桃園國民運動中心',
       note: '', 
+      description: '',
       isFree: true,
       price: '',
       time: '', 
@@ -278,9 +280,21 @@ function Home() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">備註 / 補充說明 (選填)</label>
+                <label className="form-label">詳細地點說明 (選填)</label>
                 <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
               </div>
+              <div className="form-group">
+                <label className="form-label">揪團說明 / 備註 (選填)</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  placeholder="寫下你的規則、或想對大家說的話..." 
+                  value={newParty.description} 
+                  onChange={e => setNewParty({...newParty, description: e.target.value})}
+                  style={{ resize: 'none' }}
+                />
+              </div>
+
               <div className="form-group">
                 <label className="form-label">入場費 / 費用</label>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
