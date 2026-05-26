@@ -90,6 +90,7 @@ function Home() {
     isFree: true,
     price: '',
     time: '', 
+    duration: '2 小時',
     maxPlayers: 4 
   });
 
@@ -120,6 +121,7 @@ function Home() {
       type: newParty.type,
       level: newParty.level,
       time: newParty.time.replace('T', ' '),
+      duration: newParty.duration,
       location: fullLocation,
       price: priceDisplay,
       currentPlayers: 1, // 發起人自己
@@ -145,6 +147,7 @@ function Home() {
       isFree: true,
       price: '',
       time: '', 
+      duration: '2 小時',
       maxPlayers: 4 
     });
   };
@@ -368,8 +371,20 @@ function Home() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">時間</label>
+                <label className="form-label">活動時間</label>
                 <input type="datetime-local" className="form-input" value={newParty.time} onChange={e => setNewParty({...newParty, time: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">預計時長</label>
+                <select className="form-input" value={newParty.duration} onChange={e => setNewParty({...newParty, duration: e.target.value})}>
+                  <option value="1 小時">1 小時</option>
+                  <option value="1.5 小時">1.5 小時</option>
+                  <option value="2 小時">2 小時</option>
+                  <option value="2.5 小時">2.5 小時</option>
+                  <option value="3 小時">3 小時</option>
+                  <option value="4 小時">4 小時</option>
+                  <option value="5 小時">5 小時</option>
+                </select>
               </div>
               <div className="form-group">
                 <label className="form-label">人數需求</label>
