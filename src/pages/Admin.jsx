@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain } from 'lucide-react';
 import '../App.css';
 
 function Admin() {
@@ -12,6 +12,13 @@ function Admin() {
     { id: 1, name: '桃園國民運動中心', city: '桃園市', district: '桃園區', facilities: ['冷氣', '飲水機', '廁所', '淋浴間'] },
     { id: 2, name: '桃園巨蛋室外籃球場', city: '桃園市', district: '桃園區', facilities: ['飲水機', '廁所'] },
     { id: 3, name: '台大體育館', city: '台北市', district: '大安區', facilities: ['冷氣', '飲水機', '廁所'] },
+  ]);
+
+  // 模擬揪團房間資料 (用於 Demo 工具)
+  const [parties, setParties] = useState([
+    { id: 1, title: '今晚巨蛋鬥牛', status: '招募中', time: '今日 20:00' },
+    { id: 2, title: '假日缺一咖打牌', status: '招募中', time: '本週六 14:00' },
+    { id: 3, title: '下班輕鬆打羽球', status: '招募中', time: '明日 19:00' },
   ]);
 
   // 模擬公告資料
@@ -29,6 +36,12 @@ function Admin() {
 
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+
+  // Demo 工具相關邏輯
+  const handleUpdatePartyStatus = (id, newStatus, newTime) => {
+    setParties(parties.map(p => p.id === id ? { ...p, status: newStatus, time: newTime || p.time } : p));
+    alert(`房間狀態已變更為：${newStatus}`);
+  };
 
   const handleAddVenue = (e) => {
     e.preventDefault();
@@ -104,6 +117,14 @@ function Admin() {
             onClick={() => setActiveTab('feedbacks')}
           >
             <MessageSquareText size={20} /> 使用者回饋
+          </button>
+          <div style={{ margin: '20px 0', borderTop: '1px solid rgba(255,255,255,0.1)' }}></div>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'demo' ? 'active' : ''}`}
+            onClick={() => setActiveTab('demo')}
+            style={{ color: '#fcd34d' }}
+          >
+            <Wrench size={20} /> Demo 工具箱
           </button>
         </nav>
 
@@ -352,6 +373,83 @@ function Admin() {
                   目前沒有待處理的回饋。
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Demo 工具箱 Tab */}
+        {activeTab === 'demo' && (
+          <div className="admin-content">
+            <h2 style={{ marginBottom: '8px', color: '#b45309' }}>🛠️ Demo 展示工具箱</h2>
+            <p style={{ color: '#64748b', marginBottom: '32px' }}>這些功能僅供開發與展示使用，可快速改變系統狀態以利 Demo。</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+              
+              {/* 房間狀態控制 */}
+              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #fcd34d' }}>
+                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MapPinned size={20} color="#b45309" /> 快速調整房間狀態
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {parties.map(p => (
+                    <div key={p.id} style={{ padding: '16px', backgroundColor: '#fffbeb', borderRadius: '12px', border: '1px solid #fef3c7' }}>
+                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>{p.title}</div>
+                      <div style={{ fontSize: '12px', color: '#b45309', marginBottom: '12px' }}>
+                        目前狀態：<span style={{ fontWeight: '800' }}>{p.status}</span> ({p.time})
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '即將開始', '10 分鐘後')}>
+                          即將開始
+                        </button>
+                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '已開始', '進行中')}>
+                          已開始
+                        </button>
+                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '已結束', '昨天')}>
+                          已結束
+                        </button>
+                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }} onClick={() => handleUpdatePartyStatus(p.id, '招募中', '今日 20:00')}>
+                          還原
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 其他展示工具 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* 身份快速切換 */}
+                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <UserCircle size={20} color="#7995a5" /> 模擬身份登入
+                  </h3>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('已模擬：新手用戶登入 (信譽 60)')}>
+                      新手/黑名單
+                    </button>
+                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('已模擬：資深用戶登入 (信譽 99)')}>
+                      優良老手
+                    </button>
+                  </div>
+                </div>
+
+                {/* 天氣/系統狀態控制 */}
+                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CloudRain size={20} color="#7995a5" /> 系統環境模擬
+                  </h3>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('天氣已變更為：暴雨 (暫停戶外推薦)')}>
+                      模擬暴雨
+                    </button>
+                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => alert('系統已重置為初始狀態')}>
+                      <RefreshCcw size={16} /> 重置所有數據
+                    </button>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
         )}
