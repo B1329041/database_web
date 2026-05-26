@@ -12,8 +12,12 @@ function Login() {
     e.preventDefault();
     console.log('Login attempt:', { email, password, role });
     // TODO: Connect to backend API
-    // 模擬登入成功後跳轉到首頁
-    navigate('/home');
+    // 模擬登入成功後跳轉
+    if (role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/home');
+    }
   };
 
   return (

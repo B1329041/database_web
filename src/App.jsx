@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import SetupProfile from './pages/SetupProfile';
 import PartyDetail from './pages/PartyDetail';
+import Admin from './pages/Admin';
 import './App.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/party/:id" element={<PartyDetail />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );
