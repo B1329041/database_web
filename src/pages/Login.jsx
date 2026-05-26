@@ -6,12 +6,11 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
-  const [level, setLevel] = useState('休閒');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password, role, level });
+    console.log('Login attempt:', { email, password, role });
     // TODO: Connect to backend API
     // 模擬登入成功後跳轉到首頁
     navigate('/home');
@@ -67,20 +66,6 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="level">自身程度 (登入後可更改)</label>
-            <select
-              id="level"
-              className="form-input"
-              value={level}
-              onChange={(e) => setLevel(e.target.value)}
-            >
-              <option value="新手">新手</option>
-              <option value="休閒">休閒</option>
-              <option value="高手">高手</option>
-            </select>
           </div>
 
           <div className="forgot-password">
