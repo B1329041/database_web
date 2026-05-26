@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users } from 'lucide-react';
 import '../App.css';
@@ -8,7 +8,7 @@ function PartyDetail() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const defaultParty = {
+  const defaultParty = useMemo(() => ({
     id: id,
     title: '未知的揪團',
     type: '未知',
@@ -24,17 +24,38 @@ function PartyDetail() {
     maxWaitlist: 2,
     host: '主揪人',
     description: '這是一個預設的揪團說明。大家一起開心打球，友誼第一！記得帶自己的裝備喔。',
-    participants: ['主揪人'],
+    participants: [{ name: '主揪人', phone: '0912-345-678', line: 'host_id' }],
     waitlist: []
-  };
+  }), [id]);
 
-  const initialParty = location.state?.party || defaultParty;
-  
+  const initialParty = useMemo(() => {
+    const party = location.state?.party || defaultParty;
+    const processedParty = { ...party };
+
+    // 確保 participants 是物件陣列格式
+    if (processedParty.participants && typeof processedParty.participants[0] === 'string') {
+      processedParty.participants = processedParty.participants.map((p, idx) => ({
+        name: p,
+        phone: idx === 0 ? '0912-345-678' : '0911-222-333', // 避免 Math.random() 違法純函數規則
+        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`
+      }));
+    }
+    if (processedParty.waitlist && typeof processedParty.waitlist[0] === 'string') {
+      processedParty.waitlist = processedParty.waitlist.map(p => ({
+        name: p,
+        phone: '0911-222-333',
+        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`
+      }));
+    }
+    return processedParty;
+  }, [location.state, defaultParty]);
+
   const [party, setParty] = useState(initialParty);
   const [hasJoined, setHasJoined] = useState(false);
   const [joinType, setJoinType] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
+  const [selectedMember, setSelectedMember] = useState(null); // 新增：被選擇查看資料的成員
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -42,11 +63,16 @@ function PartyDetail() {
   };
 
   const handleJoin = () => {
+    const newMember = { 
+      name: '我 (使用者)', 
+      phone: '0987-654-321', 
+      line: 'my_id_888' 
+    };
     if (party.currentPlayers < party.maxPlayers) {
       setParty(prev => ({
         ...prev,
         currentPlayers: prev.currentPlayers + 1,
-        participants: [...prev.participants, '我 (使用者)']
+        participants: [...prev.participants, newMember]
       }));
       setJoinType('normal');
       setHasJoined(true);
@@ -55,7 +81,7 @@ function PartyDetail() {
       setParty(prev => ({
         ...prev,
         currentWaitlist: prev.currentWaitlist + 1,
-        waitlist: [...prev.waitlist, '我 (使用者)']
+        waitlist: [...prev.waitlist, newMember]
       }));
       setJoinType('waitlist');
       setHasJoined(true);
@@ -68,13 +94,13 @@ function PartyDetail() {
       setParty(prev => ({
         ...prev,
         currentPlayers: prev.currentPlayers - 1,
-        participants: prev.participants.filter(p => p !== '我 (使用者)')
+        participants: prev.participants.filter(p => p.name !== '我 (使用者)')
       }));
     } else if (joinType === 'waitlist') {
       setParty(prev => ({
         ...prev,
         currentWaitlist: prev.currentWaitlist - 1,
-        waitlist: prev.waitlist.filter(p => p !== '我 (使用者)')
+        waitlist: prev.waitlist.filter(p => p.name !== '我 (使用者)')
       }));
     }
     setHasJoined(false);
@@ -193,22 +219,64 @@ function PartyDetail() {
       {/* 名單 Modal */}
       {showListModal && (
         <div className="modal-overlay" onClick={() => setShowListModal(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
             <div className="modal-header">
               <h3>{showListModal === 'participants' ? `👥 參與名單 (${party.currentPlayers}/${party.maxPlayers})` : `⏳ 候補名單 (${party.currentWaitlist}/${party.maxWaitlist})`}</h3>
               <button className="modal-close" onClick={() => setShowListModal(null)}>&times;</button>
             </div>
-            <div className="participant-list" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
+            <div className="participant-list-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
               {(showListModal === 'participants' ? party.participants : party.waitlist).map((p, idx) => (
-                <div key={idx} className="participant-item">
-                  <div className="participant-avatar" style={showListModal === 'waitlist' ? { backgroundColor: '#94a3b8' } : {}}>{p.charAt(0)}</div>
-                  <span>{p} {showListModal === 'participants' && idx === 0 && <span className="host-badge">主揪</span>}</span>
+                <div key={idx} className="participant-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="participant-avatar" style={showListModal === 'waitlist' ? { backgroundColor: '#94a3b8' } : {}}>{p.name.charAt(0)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: '700' }}>
+                        {p.name}
+                        {showListModal === 'participants' && idx === 0 && (
+                          <span style={{ marginLeft: '8px', padding: '2px 8px', backgroundColor: '#7995a5', color: 'white', fontSize: '11px', borderRadius: '4px', fontWeight: '800' }}>主揪</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                  <button 
+                    className="btn-outline" 
+                    style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
+                    onClick={() => setSelectedMember(p)}
+                  >
+                    查看資料
+                  </button>
                 </div>
               ))}
               {showListModal === 'waitlist' && party.waitlist.length === 0 && (
-                <p style={{ color: 'var(--text-muted)' }}>目前無人候補</p>
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>目前無人候補</p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 成員詳細資料 Modal */}
+      {selectedMember && (
+        <div className="modal-overlay" onClick={() => setSelectedMember(null)} style={{ zIndex: 1100 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center' }}>
+            <div className="avatar-placeholder" style={{ width: '80px', height: '80px', fontSize: '32px', marginBottom: '16px' }}>
+              {selectedMember.name.charAt(0)}
+            </div>
+            <h3 style={{ marginBottom: '8px' }}>{selectedMember.name}</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>成員聯繫資訊</p>
+            
+            <div style={{ textAlign: 'left', backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b', fontSize: '13px' }}>電話號碼</span>
+                <span style={{ fontWeight: '700' }}>{selectedMember.phone}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b', fontSize: '13px' }}>LINE / 通訊</span>
+                <span style={{ fontWeight: '700' }}>{selectedMember.line}</span>
+              </div>
+            </div>
+            
+            <button className="login-button" onClick={() => setSelectedMember(null)}>關閉</button>
           </div>
         </div>
       )}

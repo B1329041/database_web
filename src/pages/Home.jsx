@@ -56,6 +56,7 @@ function Home() {
     district: '桃園區', 
     venue: '桃園國民運動中心',
     note: '', 
+    price: '免費',
     time: '', 
     maxPlayers: 4 
   });
@@ -76,6 +77,7 @@ function Home() {
       level: newParty.level,
       time: newParty.time.replace('T', ' '),
       location: fullLocation,
+      price: newParty.price,
       currentPlayers: 1, // 發起人自己
       maxPlayers: parseInt(newParty.maxPlayers, 10),
       currentWaitlist: 0,
@@ -263,6 +265,10 @@ function Home() {
               <div className="form-group">
                 <label className="form-label">備註 / 補充說明 (選填)</label>
                 <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">入場費 / 費用</label>
+                <input type="text" className="form-input" placeholder="例如：免費、150/人、或場地費均分" value={newParty.price} onChange={e => setNewParty({...newParty, price: e.target.value})} />
               </div>
               <div className="form-group">
                 <label className="form-label">程度</label>
