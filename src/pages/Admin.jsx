@@ -37,11 +37,24 @@ function Admin() {
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
 
-  // Demo 工具相關狀態
-  const [demoReputation, setDemoReputation] = useState(90);
+  // 模擬使用者資料 (用於 Demo 工具)
+  const [users, setUsers] = useState([
+    { id: 1, name: '運動愛好者', reputation: 90 },
+    { id: 2, name: '小白', reputation: 65 },
+    { id: 3, name: '羽球控', reputation: 98 },
+    { id: 4, name: '阿傑', reputation: 45 },
+  ]);
+
+  const [selectedUser, setSelectedUser] = useState(users[0]);
   const [weatherIndex, setWeatherIndex] = useState(80);
 
   // Demo 工具相關邏輯
+  const handleUpdateReputation = (score) => {
+    setUsers(users.map(u => u.id === selectedUser.id ? { ...u, reputation: score } : u));
+    setSelectedUser({ ...selectedUser, reputation: score });
+    alert(`玩家 ${selectedUser.name} 的信譽積分已調整為：${score}`);
+  };
+
   const handleUpdatePartyStatus = (id, newStatus, newTime) => {
     setParties(parties.map(p => p.id === id ? { ...p, status: newStatus, time: newTime || p.time } : p));
     alert(`房間狀態已變更為：${newStatus}`);
@@ -435,23 +448,42 @@ function Admin() {
                   <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <UserCircle size={20} color="#7995a5" /> 模擬玩家信譽設定
                   </h3>
+                  
+                  {/* 玩家選擇 */}
+                  <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <label className="form-label" style={{ fontSize: '13px' }}>選擇目標玩家</label>
+                    <select 
+                      className="form-input" 
+                      value={selectedUser.id} 
+                      onChange={(e) => {
+                        const user = users.find(u => u.id === parseInt(e.target.value, 10));
+                        setSelectedUser(user);
+                      }}
+                    >
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} (現有積分: {u.reputation})</option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '14px', color: '#64748b' }}>目前模擬積分：<span style={{ fontWeight: '800', fontSize: '18px', color: '#1e293b' }}>{demoReputation}</span></div>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: getReputationStatus(demoReputation).color, marginTop: '4px' }}>
-                      系統狀態：{getReputationStatus(demoReputation).label}
+                    <div style={{ fontSize: '14px', color: '#64748b' }}>目前選擇：<span style={{ fontWeight: '800', color: '#1e293b' }}>{selectedUser.name}</span></div>
+                    <div style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>設定積分：<span style={{ fontWeight: '800', fontSize: '18px', color: '#1e293b' }}>{selectedUser.reputation}</span></div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: getReputationStatus(selectedUser.reputation).color, marginTop: '4px' }}>
+                      系統狀態：{getReputationStatus(selectedUser.reputation).label}
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#ef4444' }} onClick={() => setDemoReputation(40)}>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#ef4444' }} onClick={() => handleUpdateReputation(40)}>
                       40 (Ban Forever)
                     </button>
-                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#f59e0b' }} onClick={() => setDemoReputation(50)}>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#f59e0b' }} onClick={() => handleUpdateReputation(50)}>
                       50 (懲罰/觀察)
                     </button>
-                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#fcd34d' }} onClick={() => setDemoReputation(60)}>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#fcd34d' }} onClick={() => handleUpdateReputation(60)}>
                       60 (警告/禁創房)
                     </button>
-                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#10b981' }} onClick={() => setDemoReputation(90)}>
+                    <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#10b981' }} onClick={() => handleUpdateReputation(90)}>
                       90 (恢復正常)
                     </button>
                   </div>
@@ -481,7 +513,8 @@ function Admin() {
                     </div>
                   </div>
                   <button className="btn-outline" style={{ width: '100%' }} onClick={() => {
-                    setDemoReputation(90);
+                    setUsers(users.map(u => ({ ...u, reputation: 90 })));
+                    setSelectedUser({ ...selectedUser, reputation: 90 });
                     setWeatherIndex(80);
                     alert('系統已重置為初始狀態');
                   }}>
