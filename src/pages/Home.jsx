@@ -15,8 +15,49 @@ function Home() {
     { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園虎頭山公園', currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
   ]);
 
+  // 台灣行政區與球場資料 (縣市 -> 區域 -> 球場)
+  const taiwanRegions = {
+    '桃園市': {
+      '桃園區': ['桃園國民運動中心', '桃園巨蛋室外籃球場', '陽明運動公園', '其他'],
+      '中壢區': ['中壢國民運動中心', '中原大學體育館', '中壢車站附近桌遊店', '其他'],
+      '平鎮區': ['平鎮國民運動中心', '新勢公園籃球場', '其他'],
+      '蘆竹區': ['蘆竹國民運動中心', '光明河濱公園', '其他'],
+      '龜山區': ['桃園虎頭山公園', '長庚大學體育館', '其他'],
+      '其他區': ['其他']
+    },
+    '台北市': {
+      '大安區': ['大安運動中心', '台大體育館', '和平東路球場', '其他'],
+      '信義區': ['信義運動中心', '象山公園球場', '其他'],
+      '中山區': ['中山運動中心', '新生公園', '其他'],
+      '內湖區': ['內湖運動中心', '彩虹河濱公園', '其他'],
+      '其他區': ['其他']
+    },
+    '新北市': {
+      '板橋區': ['板橋體育館', '板橋國民運動中心', '板橋羽球館', '其他'],
+      '新莊區': ['新莊體育館', '新莊國民運動中心', '其他'],
+      '三重區': ['三重國民運動中心', '三重球場', '其他'],
+      '中和區': ['中和運動中心', '錦和運動公園', '其他'],
+      '其他區': ['其他']
+    },
+    '台中市': {
+      '西屯區': ['台中市政府球場', '逢甲大學體育館', '台中陽光球場', '其他'],
+      '北屯區': ['台中洲際棒球場', '北屯球場', '其他'],
+      '其他區': ['其他']
+    }
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newParty, setNewParty] = useState({ title: '', type: '籃球', level: '休閒', location: '', time: '', maxPlayers: 4 });
+  const [newParty, setNewParty] = useState({ 
+    title: '', 
+    type: '籃球', 
+    level: '休閒', 
+    city: '桃園市', 
+    district: '桃園區', 
+    venue: '桃園國民運動中心',
+    note: '', 
+    time: '', 
+    maxPlayers: 4 
+  });
 
   const handleLogout = () => {
     navigate('/');
@@ -24,13 +65,16 @@ function Home() {
 
   const handleCreateParty = (e) => {
     e.preventDefault();
+    const venueDisplay = newParty.venue === '其他' ? '' : newParty.venue;
+    const fullLocation = `${newParty.city}${newParty.district} ${venueDisplay} ${newParty.note}`.trim();
+    
     const party = {
       id: Date.now(),
       title: newParty.title,
       type: newParty.type,
       level: newParty.level,
       time: newParty.time.replace('T', ' '),
-      location: newParty.location,
+      location: fullLocation,
       currentPlayers: 1, // 發起人自己
       maxPlayers: parseInt(newParty.maxPlayers, 10),
       currentWaitlist: 0,
@@ -41,7 +85,39 @@ function Home() {
     };
     setParties([party, ...parties]);
     setIsModalOpen(false);
-    setNewParty({ title: '', type: '籃球', level: '休閒', location: '', time: '', maxPlayers: 4 });
+    setNewParty({ 
+      title: '', 
+      type: '籃球', 
+      level: '休閒', 
+      city: '桃園市', 
+      district: '桃園區', 
+      venue: '桃園國民運動中心',
+      note: '', 
+      time: '', 
+      maxPlayers: 4 
+    });
+  };
+
+  const handleCityChange = (e) => {
+    const selectedCity = e.target.value;
+    const firstDistrict = Object.keys(taiwanRegions[selectedCity])[0];
+    const firstVenue = taiwanRegions[selectedCity][firstDistrict][0];
+    setNewParty({
+      ...newParty,
+      city: selectedCity,
+      district: firstDistrict,
+      venue: firstVenue
+    });
+  };
+
+  const handleDistrictChange = (e) => {
+    const selectedDistrict = e.target.value;
+    const firstVenue = taiwanRegions[newParty.city][selectedDistrict][0];
+    setNewParty({
+      ...newParty,
+      district: selectedDistrict,
+      venue: firstVenue
+    });
   };
 
   return (
@@ -66,11 +142,11 @@ function Home() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <select className="region-select">
+            <select className="region-select" value={selectedFilterRegion} onChange={e => setSelectedFilterRegion(e.target.value)}>
               <option value="all">所有地區</option>
-              <option value="taoyuan">桃園市</option>
-              <option value="taipei">台北市</option>
-              <option value="new_taipei">新北市</option>
+              {Object.keys(taiwanRegions).map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
             </select>
             <div className="filter-chips">
               <span className="chip active">全部</span>
@@ -160,8 +236,32 @@ function Home() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">地點</label>
-                <input type="text" className="form-input" placeholder="例如：桃園巨蛋室外場" value={newParty.location} onChange={e => setNewParty({...newParty, location: e.target.value})} required />
+                <label className="form-label">地點 (縣市)</label>
+                <select className="form-input" value={newParty.city} onChange={handleCityChange}>
+                  {Object.keys(taiwanRegions).map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">地點 (區域)</label>
+                <select className="form-input" value={newParty.district} onChange={handleDistrictChange}>
+                  {Object.keys(taiwanRegions[newParty.city]).map(dist => (
+                    <option key={dist} value={dist}>{dist}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">地點 (場館/球場)</label>
+                <select className="form-input" value={newParty.venue} onChange={e => setNewParty({...newParty, venue: e.target.value})}>
+                  {taiwanRegions[newParty.city][newParty.district].map(v => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">備註 / 補充說明 (選填)</label>
+                <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
               </div>
               <div className="form-group">
                 <label className="form-label">程度</label>
