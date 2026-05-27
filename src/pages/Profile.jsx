@@ -25,20 +25,16 @@ function Profile() {
     avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky'
   });
 
-  // 預設可愛頭貼清單 (擴充多樣性)
+  // 預設可愛頭貼清單 (精選 8 款)
   const presetAvatars = [
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky',
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Mochi',
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Cookie',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Buddy',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Pudding',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Willow',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Leo',
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Sasha',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Oliver',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Pudding',
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Jasmine',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Bear',
-    'https://api.dicebear.com/9.x/adventurer/svg?seed=Luna',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Leo',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Willow',
   ];
 
   const handleSave = (e) => {
