@@ -13,6 +13,7 @@ function SetupProfile() {
   });
   const [bio, setBio] = useState('');
   const [birthday, setBirthday] = useState('');
+  const [gender, setGender] = useState('');
   const [phone, setPhone] = useState('');
   const [line, setLine] = useState('');
   const [ig, setIg] = useState('');
@@ -46,7 +47,7 @@ function SetupProfile() {
       return;
     }
 
-    console.log('Setup Profile:', { avatar, levels, bio, birthday, phone, line, ig });
+    console.log('Setup Profile:', { avatar, levels, bio, birthday, gender, phone, line, ig });
     // TODO: Connect to backend API
     alert('設定完成，歡迎加入！');
     navigate('/home');
@@ -130,6 +131,18 @@ function SetupProfile() {
                 onChange={(e) => setBirthday(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">性別 (必填)</label>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input type="radio" name="gender" value="男" checked={gender === '男'} onChange={(e) => setGender(e.target.value)} required /> 男
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input type="radio" name="gender" value="女" checked={gender === '女'} onChange={(e) => setGender(e.target.value)} required /> 女
+                </label>
+              </div>
             </div>
 
             <div className="form-group">

@@ -12,6 +12,7 @@ function Profile() {
     nickname: '運動愛好者',
     email: 'user@example.com',
     birthday: '1998-05-20',
+    gender: '男',
     phone: '0912345678',
     bio: '喜歡週末到處打球，偶爾打打衛生麻將。',
     region: '桃園市',
@@ -140,7 +141,7 @@ function Profile() {
                   <p className="profile-email">{userInfo.email}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Cake size={16} /> {userInfo.birthday}
+                      <Cake size={16} /> {userInfo.birthday} ({userInfo.gender})
                     </p>
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Phone size={16} /> {userInfo.phone}
@@ -186,6 +187,17 @@ function Profile() {
                   <div className="form-group">
                     <label className="form-label">生日 (不可修改)</label>
                     <input type="date" className="form-input" value={userInfo.birthday} readOnly style={{ backgroundColor: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed' }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">性別</label>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="radio" name="gender" value="男" checked={userInfo.gender === '男'} onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})} /> 男
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="radio" name="gender" value="女" checked={userInfo.gender === '女'} onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})} /> 女
+                      </label>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">聯絡電話</label>

@@ -18,6 +18,7 @@
 | name | 是 | String | 球友姓名或暱稱 |
 | phone | 是 | String | 聯絡電話，格式需為 `09xxxxxxxx` |
 | birthday | 是 | Date | 出生年月日 (YYYY-MM-DD)。**註冊後不得修改** |
+| gender | 是 | String | 性別 ('男' 或 '女') |
 
 ### 2. 取得個人資料與信譽積分
 - **路由路徑：** `GET /api/users/profile`
@@ -29,6 +30,7 @@
   "name": "陳球友",
   "phone": "0912345678",
   "birthday": "2006-06-25",
+  "gender": "男",
   "avatar_url": "https://example.com/avatars/user1.jpg",
   "age": 19,
   "credit_point": 100,
