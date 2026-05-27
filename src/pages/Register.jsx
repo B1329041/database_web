@@ -30,7 +30,7 @@ function Register() {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="nickname">暱稱</label>
+            <label className="form-label" htmlFor="nickname">暱稱 <span style={{ color: '#ef4444' }}>(必填)</span></label>
             <input
               id="nickname"
               type="text"
@@ -43,7 +43,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="email">電子信箱 / 帳號</label>
+            <label className="form-label" htmlFor="email">電子信箱 / 帳號 <span style={{ color: '#ef4444' }}>(必填)</span></label>
             <input
               id="email"
               type="text"
@@ -56,7 +56,7 @@ function Register() {
           </div>
           
           <div className="form-group">
-            <label className="form-label" htmlFor="password">密碼</label>
+            <label className="form-label" htmlFor="password">密碼 <span style={{ color: '#ef4444' }}>(必填)</span></label>
             <input
               id="password"
               type="password"
@@ -69,7 +69,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="confirmPassword">確認密碼</label>
+            <label className="form-label" htmlFor="confirmPassword">確認密碼 <span style={{ color: '#ef4444' }}>(必填)</span></label>
             <input
               id="confirmPassword"
               type="password"

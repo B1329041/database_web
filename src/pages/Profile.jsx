@@ -70,6 +70,16 @@ function Profile() {
     });
   };
 
+  const getLevelColor = (lv) => {
+    switch(lv) {
+      case 'S': return '#ef4444'; // Red
+      case 'A': return '#f59e0b'; // Orange
+      case 'B': return '#10b981'; // Green
+      case 'C': return '#94a3b8'; // Gray
+      default: return '#7995a5';
+    }
+  };
+
   return (
     <div className="home-container">
       {/* 導覽列 */}
@@ -160,7 +170,7 @@ function Profile() {
                       {Object.entries(userInfo.levels).map(([sport, lv]) => (
                         <div key={sport} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', backgroundColor: '#f1f5f9', borderRadius: '6px', fontSize: '13px' }}>
                           <span style={{ color: '#64748b' }}>{sport}</span>
-                          <span style={{ fontWeight: '800', color: '#7995a5' }}>{lv}</span>
+                          <span style={{ fontWeight: '800', color: getLevelColor(lv) }}>{lv}</span>
                         </div>
                       ))}
                     </div>
@@ -206,7 +216,7 @@ function Profile() {
                   
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>各項程度 (必填)</label>
+                      <label className="form-label" style={{ marginBottom: 0 }}>各項程度 <span style={{ color: '#ef4444' }}>(必填)</span></label>
                       <HelpCircle size={16} color="#7995a5" style={{ cursor: 'pointer' }} onClick={() => setShowLevelHelp(true)} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

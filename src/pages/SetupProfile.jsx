@@ -122,7 +122,7 @@ function SetupProfile() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div className="form-group">
-              <label className="form-label" htmlFor="birthday">生日 (必填)</label>
+              <label className="form-label" htmlFor="birthday">生日 <span style={{ color: '#ef4444' }}>(必填)</span></label>
               <input
                 id="birthday"
                 type="date"
@@ -134,7 +134,7 @@ function SetupProfile() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">性別 (必填)</label>
+              <label className="form-label">性別 <span style={{ color: '#ef4444' }}>(必填)</span></label>
               <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                   <input type="radio" name="gender" value="男" checked={gender === '男'} onChange={(e) => setGender(e.target.value)} required /> 男
@@ -146,7 +146,7 @@ function SetupProfile() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="phone">聯絡電話 (必填)</label>
+              <label className="form-label" htmlFor="phone">聯絡電話 <span style={{ color: '#ef4444' }}>(必填)</span></label>
               <input
                 id="phone"
                 type="tel"
