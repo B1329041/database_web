@@ -266,7 +266,7 @@ function PartyDetail() {
                       </span>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                         <span style={{ fontSize: '12px', color: '#64748b' }}>{p.age} 歲</span>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: getLevelColor(p.level) }}>等級: {p.level}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#7995a5' }}>等級: <span style={{ color: getLevelColor(p.level) }}>{p.level}</span></span>
                       </div>
                     </div>
                   </div>
