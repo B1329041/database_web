@@ -17,7 +17,18 @@ function SetupProfile() {
   const [line, setLine] = useState('');
   const [ig, setIg] = useState('');
   const [showLevelHelp, setShowLevelHelp] = useState(false);
+  const [avatar, setAvatar] = useState('https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky');
   const navigate = useNavigate();
+
+  // 預設可愛頭貼清單 (使用 DiceBear 產生)
+  const presetAvatars = [
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Cookie',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Buddy',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Honey',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Mochi',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Pudding',
+  ];
 
   const handleLevelChange = (sport, value) => {
     setLevels({ ...levels, [sport]: value });
@@ -33,7 +44,7 @@ function SetupProfile() {
       return;
     }
 
-    console.log('Setup Profile:', { levels, bio, birthday, phone, line, ig });
+    console.log('Setup Profile:', { avatar, levels, bio, birthday, phone, line, ig });
     // TODO: Connect to backend API
     alert('設定完成，歡迎加入！');
     navigate('/home');
@@ -44,10 +55,38 @@ function SetupProfile() {
       <div className="login-card" style={{ maxWidth: '700px' }}>
         <div className="login-header">
           <h1 className="login-title">建立個人檔案</h1>
-          <p className="login-subtitle">讓大家更認識你，輕鬆找到好球友！</p>
+          <p className="login-subtitle">選個可愛的頭貼，讓大家更容易記住你！</p>
         </div>
         
         <form onSubmit={handleSubmit}>
+          {/* 頭貼選擇區 */}
+          <div className="form-group" style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div className="avatar-placeholder" style={{ margin: '0 auto 16px auto', overflow: 'hidden', border: '4px solid #f1f5f9' }}>
+              <img src={avatar} alt="Current Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              {presetAvatars.map((url, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => setAvatar(url)}
+                  style={{ 
+                    width: '50px', 
+                    height: '50px', 
+                    borderRadius: '50%', 
+                    overflow: 'hidden', 
+                    cursor: 'pointer',
+                    border: avatar === url ? '3px solid #7995a5' : '2px solid transparent',
+                    transition: 'all 0.2s',
+                    transform: avatar === url ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                >
+                  <img src={url} alt={`Preset ${index}`} style={{ width: '100%', height: '100%' }} />
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '12px' }}>點選上方預設頭貼或稍後在個人頁面上傳照片</p>
+          </div>
+
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px' }}>各項運動程度 (SABC) <span style={{ color: '#ef4444', fontSize: '14px' }}>(必填)</span></h3>

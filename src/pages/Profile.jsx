@@ -22,8 +22,18 @@ function Profile() {
       '桌球': 'B',
       '麻將': 'B'
     },
-    avatar: null
+    avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky'
   });
+
+  // 預設可愛頭貼清單
+  const presetAvatars = [
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Cookie',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Buddy',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Honey',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Mochi',
+    'https://api.dicebear.com/9.x/adventurer/svg?seed=Pudding',
+  ];
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -99,6 +109,28 @@ function Profile() {
                   onChange={handleAvatarChange} 
                 />
               </div>
+
+              {isEditing && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  {presetAvatars.map((url, index) => (
+                    <div 
+                      key={index} 
+                      onClick={() => setUserInfo({ ...userInfo, avatar: url })}
+                      style={{ 
+                        width: '36px', 
+                        height: '36px', 
+                        borderRadius: '50%', 
+                        overflow: 'hidden', 
+                        cursor: 'pointer',
+                        border: userInfo.avatar === url ? '2px solid #7995a5' : '1px solid #e2e8f0',
+                        padding: '1px'
+                      }}
+                    >
+                      <img src={url} alt={`Preset ${index}`} style={{ width: '100%', height: '100%' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
               
               {!isEditing ? (
                 <>
