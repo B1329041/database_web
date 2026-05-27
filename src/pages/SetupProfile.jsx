@@ -14,6 +14,14 @@ function SetupProfile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // 手機號碼格式驗證 (台灣格式: 09xxxxxxxx)
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+      alert('請輸入正確的手機號碼格式 (例如: 0912345678)！');
+      return;
+    }
+
     console.log('Setup Profile:', { level, bio, birthday, phone, line, fb, ig });
     // TODO: Connect to backend API
     alert('設定完成，歡迎加入！');
@@ -55,7 +63,7 @@ function SetupProfile() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="phone">聯絡電話 (選填)</label>
+            <label className="form-label" htmlFor="phone">聯絡電話 (必填)</label>
             <input
               id="phone"
               type="tel"
@@ -63,6 +71,7 @@ function SetupProfile() {
               placeholder="09xxxxxxxx"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              required
             />
           </div>
 

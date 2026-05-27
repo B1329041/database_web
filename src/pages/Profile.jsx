@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cake, MapPin, Clock } from 'lucide-react';
+import { Cake, MapPin, Clock, Phone } from 'lucide-react';
 import '../App.css';
 
 function Profile() {
@@ -10,12 +10,21 @@ function Profile() {
     nickname: '運動愛好者',
     email: 'user@example.com',
     birthday: '1998-05-20',
+    phone: '0912345678',
     bio: '喜歡週末到處打球，偶爾打打衛生麻將。',
     region: '桃園市'
   });
 
   const handleSave = (e) => {
     e.preventDefault();
+    
+    // 手機號碼格式驗證
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(userInfo.phone)) {
+      alert('請輸入正確的手機號碼格式 (例如: 0912345678)！');
+      return;
+    }
+
     setIsEditing(false);
     alert('個人資料已更新！');
   };
@@ -46,6 +55,9 @@ function Profile() {
                   <p className="profile-email" style={{ marginTop: '-8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     <Cake size={16} /> {userInfo.birthday}
                   </p>
+                  <p className="profile-email" style={{ marginTop: '-8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Phone size={16} /> {userInfo.phone}
+                  </p>
                   <p className="profile-bio">{userInfo.bio}</p>
                   
                   <div className="reputation-box">
@@ -67,6 +79,10 @@ function Profile() {
                   <div className="form-group">
                     <label className="form-label">生日</label>
                     <input type="date" className="form-input" value={userInfo.birthday} onChange={e => setUserInfo({...userInfo, birthday: e.target.value})} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">聯絡電話</label>
+                    <input type="tel" className="form-input" placeholder="09xxxxxxxx" value={userInfo.phone} onChange={e => setUserInfo({...userInfo, phone: e.target.value})} required />
                   </div>
                   <div className="form-group">
                     <label className="form-label">常駐地區</label>
