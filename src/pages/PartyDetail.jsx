@@ -36,15 +36,19 @@ function PartyDetail() {
     if (processedParty.participants && typeof processedParty.participants[0] === 'string') {
       processedParty.participants = processedParty.participants.map((p, idx) => ({
         name: p,
-        phone: idx === 0 ? '0912-345-678' : '0911-222-333', // 避免 Math.random() 違法純函數規則
-        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`
+        phone: idx === 0 ? '0912-345-678' : '0911-222-333',
+        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`,
+        age: 20 + (idx * 2), // 固定 mock 數據避免 Math.random()
+        level: ['S', 'A', 'B', 'C'][idx % 4]
       }));
     }
     if (processedParty.waitlist && typeof processedParty.waitlist[0] === 'string') {
-      processedParty.waitlist = processedParty.waitlist.map(p => ({
+      processedParty.waitlist = processedParty.waitlist.map((p, idx) => ({
         name: p,
         phone: '0911-222-333',
-        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`
+        line: `${p.replace(/\s+/g, '_').toLowerCase()}_line`,
+        age: 25 + idx,
+        level: ['B', 'C'][idx % 2]
       }));
     }
     return processedParty;
@@ -66,7 +70,9 @@ function PartyDetail() {
     const newMember = { 
       name: '我 (使用者)', 
       phone: '0987-654-321', 
-      line: 'my_id_888' 
+      line: 'my_id_888',
+      age: 20,
+      level: 'A'
     };
     if (party.currentPlayers < party.maxPlayers) {
       setParty(prev => ({
@@ -248,6 +254,10 @@ function PartyDetail() {
                           <span style={{ marginLeft: '8px', padding: '2px 8px', backgroundColor: '#7995a5', color: 'white', fontSize: '11px', borderRadius: '4px', fontWeight: '800' }}>主揪</span>
                         )}
                       </span>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>{p.age} 歲</span>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#7995a5' }}>等級: {p.level}</span>
+                      </div>
                     </div>
                   </div>
                   <button 
