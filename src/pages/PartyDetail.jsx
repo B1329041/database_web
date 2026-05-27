@@ -64,7 +64,7 @@ function PartyDetail() {
   // 新增：場地狀態與檢舉功能狀態
   const [isHostView, setIsHostView] = useState(true); // 測試用
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState('放鳥 / 未出席');
+  const [reportReason, setReportReason] = useState('未出現');
   const [reportDetail, setReportDetail] = useState('');
 
   const getLevelColor = (lv) => {
@@ -366,10 +366,14 @@ function PartyDetail() {
               <div className="form-group">
                 <label className="form-label">檢舉原因</label>
                 <select className="form-input" value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-                  <option value="放鳥 / 未出席">放鳥 / 未出席</option>
-                  <option value="態度惡劣 / 騷擾">態度惡劣 / 騷擾</option>
-                  <option value="發送廣告 / 垃圾訊息">發送廣告 / 垃圾訊息</option>
-                  <option value="其他">其他</option>
+                  <option value="未出現">未出現</option>
+                  <option value="沒交錢">沒交錢</option>
+                  <option value="球品不好">球品不好</option>
+                  <option value="言語攻擊">言語攻擊</option>
+                  <option value="態度不佳">態度不佳</option>
+                  <option value="等級不符">等級不符</option>
+                  <option value="騷擾與人身攻擊">騷擾與人身攻擊</option>
+                  <option value="肢體暴力">肢體暴力</option>
                 </select>
               </div>
 
