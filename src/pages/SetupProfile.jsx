@@ -50,7 +50,7 @@ function SetupProfile() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px' }}>各項運動程度 (SABC)</h3>
+              <h3 style={{ margin: 0, fontSize: '18px' }}>各項運動程度 (SABC) <span style={{ color: '#ef4444', fontSize: '14px' }}>(必填)</span></h3>
               <HelpCircle 
                 size={20} 
                 color="#7995a5" 

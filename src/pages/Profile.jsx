@@ -160,7 +160,7 @@ function Profile() {
                   
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>各項程度</label>
+                      <label className="form-label" style={{ marginBottom: 0 }}>各項程度 (必填)</label>
                       <HelpCircle size={16} color="#7995a5" style={{ cursor: 'pointer' }} onClick={() => setShowLevelHelp(true)} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
