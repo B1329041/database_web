@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users } from 'lucide-react';
+import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye } from 'lucide-react';
 import '../App.css';
 
 function PartyDetail() {
@@ -60,6 +60,12 @@ function PartyDetail() {
   const [toastMsg, setToastMsg] = useState('');
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
   const [selectedMember, setSelectedMember] = useState(null); // 新增：被選擇查看資料的成員
+  
+  // 新增：場地狀態與檢舉功能狀態
+  const [isHostView, setIsHostView] = useState(true); // 測試用
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('放鳥 / 未出席');
+  const [reportDetail, setReportDetail] = useState('');
 
   const getLevelColor = (lv) => {
     switch(lv) {
@@ -131,7 +137,10 @@ function PartyDetail() {
     <div className="home-container">
       <nav className="navbar">
         <div className="navbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>不揪ㄛ</div>
-        <div className="navbar-actions">
+        <div className="navbar-actions" style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-outline" onClick={() => setIsHostView(!isHostView)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 10px' }}>
+            <Eye size={14} /> {isHostView ? '主揪視角' : '一般視角'}
+          </button>
           <button className="btn-outline" onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}>
             <ArrowLeft size={16} /> 返回大廳
           </button>
@@ -144,9 +153,15 @@ function PartyDetail() {
           
           {/* 標題與設施 (背景透明度調整) */}
           <div style={{ minHeight: '220px', background: 'linear-gradient(135deg, rgba(121, 149, 165, 0.85), rgba(75, 98, 114, 0.85))', padding: '60px 40px 30px 40px', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <span className="party-type" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}>{party.type}</span>
               <span className="party-level" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{party.level || '休閒'}</span>
+              <span style={{ 
+                backgroundColor: party.venueStatus === 'confirmed' ? '#10b981' : party.venueStatus === 'failed' ? '#ef4444' : '#f59e0b', 
+                color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' 
+              }}>
+                {party.venueStatus === 'confirmed' ? '✅ 場地已確認' : party.venueStatus === 'failed' ? '❌ 場地未借到' : '⏳ 場地確認中'}
+              </span>
             </div>
             
             <h1 className="detail-title" style={{ color: 'white', marginTop: '16px', marginBottom: '16px' }}>{party.title}</h1>
@@ -162,6 +177,20 @@ function PartyDetail() {
           </div>
 
           <div style={{ padding: '40px' }}>
+            {isHostView && (
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 主揪管理面板</h3>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button className="btn-primary" style={{ flex: 1, backgroundColor: '#10b981', border: 'none' }} onClick={() => { setParty({...party, venueStatus: 'confirmed'}); showToast('已通知所有成員：場地確認成功！'); }}>
+                    ✅ 確認借到場地
+                  </button>
+                  <button className="btn-outline" style={{ flex: 1, color: '#ef4444', borderColor: '#ef4444' }} onClick={() => { setParty({...party, venueStatus: 'failed'}); showToast('已通知所有成員：活動取消！'); }}>
+                    ❌ 場地未借到 (取消)
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="detail-info-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', paddingBottom: '32px' }}>
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <Clock size={20} color="#7995a5" />
@@ -290,8 +319,16 @@ function PartyDetail() {
       {/* 成員詳細資料 Modal */}
       {selectedMember && (
         <div className="modal-overlay" onClick={() => setSelectedMember(null)} style={{ zIndex: 1100 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center' }}>
-            <div className="avatar-placeholder" style={{ width: '80px', height: '80px', fontSize: '32px', marginBottom: '16px' }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center', position: 'relative' }}>
+            {selectedMember.name !== '我 (使用者)' && (
+              <button 
+                onClick={() => { setShowReportModal(true); setSelectedMember(null); }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
+              >
+                <AlertTriangle size={16} /> 檢舉
+              </button>
+            )}
+            <div className="avatar-placeholder" style={{ width: '80px', height: '80px', fontSize: '32px', marginBottom: '16px', margin: '0 auto 16px auto' }}>
               {selectedMember.name.charAt(0)}
             </div>
             <h3 style={{ marginBottom: '8px' }}>{selectedMember.name}</h3>
@@ -309,6 +346,53 @@ function PartyDetail() {
             </div>
             
             <button className="login-button" onClick={() => setSelectedMember(null)}>關閉</button>
+          </div>
+        </div>
+      )}
+
+      {/* 檢舉 Modal */}
+      {showReportModal && (
+        <div className="modal-overlay" onClick={() => setShowReportModal(false)} style={{ zIndex: 1200 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }}>
+                <AlertTriangle size={20} /> 檢舉用戶
+              </h3>
+              <button className="modal-close" onClick={() => setShowReportModal(false)}>&times;</button>
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>我們致力於維護良好的揪團環境，如果該用戶有違規行為，請協助我們進行舉發。</p>
+              
+              <div className="form-group">
+                <label className="form-label">檢舉原因</label>
+                <select className="form-input" value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+                  <option value="放鳥 / 未出席">放鳥 / 未出席</option>
+                  <option value="態度惡劣 / 騷擾">態度惡劣 / 騷擾</option>
+                  <option value="發送廣告 / 垃圾訊息">發送廣告 / 垃圾訊息</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">詳細說明 (選填)</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  placeholder="請簡單描述發生的狀況..."
+                  value={reportDetail}
+                  onChange={(e) => setReportDetail(e.target.value)}
+                ></textarea>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowReportModal(false)}>取消</button>
+              <button className="login-button" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={() => {
+                setShowReportModal(false);
+                showToast('檢舉已送出，管理團隊將會盡快審查。');
+                setReportDetail('');
+              }}>送出檢舉</button>
+            </div>
           </div>
         </div>
       )}
