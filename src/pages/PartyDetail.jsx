@@ -61,6 +61,16 @@ function PartyDetail() {
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
   const [selectedMember, setSelectedMember] = useState(null); // 新增：被選擇查看資料的成員
 
+  const getLevelColor = (lv) => {
+    switch(lv) {
+      case 'S': return '#ef4444'; // Red
+      case 'A': return '#f59e0b'; // Orange
+      case 'B': return '#10b981'; // Green
+      case 'C': return '#94a3b8'; // Gray
+      default: return '#7995a5';
+    }
+  };
+
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
@@ -256,7 +266,7 @@ function PartyDetail() {
                       </span>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                         <span style={{ fontSize: '12px', color: '#64748b' }}>{p.age} 歲</span>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#7995a5' }}>等級: {p.level}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: getLevelColor(p.level) }}>等級: {p.level}</span>
                       </div>
                     </div>
                   </div>
