@@ -52,13 +52,14 @@ function SetupProfile() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="birthday">生日 (選填)</label>
+            <label className="form-label" htmlFor="birthday">生日 (必填)</label>
             <input
               id="birthday"
               type="date"
               className="form-input"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
+              required
             />
           </div>
 

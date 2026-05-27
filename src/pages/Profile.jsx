@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cake, MapPin, Clock, Phone } from 'lucide-react';
+import { Cake, MapPin, Clock, Phone, Camera } from 'lucide-react';
 import '../App.css';
 
 function Profile() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
     nickname: '運動愛好者',
@@ -12,7 +13,8 @@ function Profile() {
     birthday: '1998-05-20',
     phone: '0912345678',
     bio: '喜歡週末到處打球，偶爾打打衛生麻將。',
-    region: '桃園市'
+    region: '桃園市',
+    avatar: null
   });
 
   const handleSave = (e) => {
@@ -27,6 +29,17 @@ function Profile() {
 
     setIsEditing(false);
     alert('個人資料已更新！');
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserInfo({ ...userInfo, avatar: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -44,8 +57,32 @@ function Profile() {
           {/* 左側：個人資料與信譽積分 */}
           <div className="profile-sidebar">
             <div className="profile-card">
-              <div className="avatar-placeholder">
-                {userInfo.nickname.charAt(0)}
+              <div 
+                className="avatar-container" 
+                style={{ position: 'relative', width: '100px', height: '100px', margin: '0 auto 20px auto' }}
+              >
+                <div className="avatar-placeholder" style={{ margin: 0, overflow: 'hidden' }}>
+                  {userInfo.avatar ? (
+                    <img src={userInfo.avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    userInfo.nickname.charAt(0)
+                  )}
+                </div>
+                {isEditing && (
+                  <button 
+                    onClick={() => fileInputRef.current.click()}
+                    style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: '#7995a5', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                  >
+                    <Camera size={16} />
+                  </button>
+                )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                  onChange={handleAvatarChange} 
+                />
               </div>
               
               {!isEditing ? (
@@ -77,8 +114,8 @@ function Profile() {
                     <input type="text" className="form-input" value={userInfo.nickname} onChange={e => setUserInfo({...userInfo, nickname: e.target.value})} required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">生日</label>
-                    <input type="date" className="form-input" value={userInfo.birthday} onChange={e => setUserInfo({...userInfo, birthday: e.target.value})} required />
+                    <label className="form-label">生日 (不可修改)</label>
+                    <input type="date" className="form-input" value={userInfo.birthday} readOnly style={{ backgroundColor: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed' }} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">聯絡電話</label>
