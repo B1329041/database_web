@@ -24,7 +24,7 @@ function Register() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title" style={{ color: '#7995a5' }}>加入不揪ㄛ</h1>
+          <h1 className="login-title">加入<span style={{ color: '#7995a5' }}>不揪ㄛ</span></h1>
           <p className="login-subtitle">註冊新帳號，開始你的第一局！</p>
         </div>
         
