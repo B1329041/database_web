@@ -465,14 +465,24 @@ function PartyDetail() {
               <div className="form-group">
                 <label className="form-label">檢舉原因</label>
                 <select className="form-input" value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-                  <option value="未出現">未出現</option>
-                  <option value="沒交錢">沒交錢</option>
-                  <option value="球品不好">球品不好</option>
-                  <option value="言語攻擊">言語攻擊</option>
-                  <option value="態度不佳">態度不佳</option>
-                  <option value="等級不符">等級不符</option>
-                  <option value="騷擾與人身攻擊">騷擾與人身攻擊</option>
-                  <option value="肢體暴力">肢體暴力</option>
+                  <optgroup label="一般原因">
+                    <option value="未出現">未出現</option>
+                    <option value="沒交錢">沒交錢</option>
+                    <option value="球品不好">球品不好</option>
+                    <option value="言語攻擊">言語攻擊</option>
+                    <option value="態度不佳">態度不佳</option>
+                    <option value="等級不符">等級不符</option>
+                    <option value="騷擾與人身攻擊">騷擾與人身攻擊</option>
+                    <option value="肢體暴力">肢體暴力</option>
+                  </optgroup>
+                  {reportingUser === party.host && (
+                    <optgroup label="主揪專屬原因">
+                      <option value="未回報場地">未回報場地</option>
+                      <option value="惡意抬價">惡意抬價</option>
+                      <option value="沒預約場地">沒預約場地</option>
+                      <option value="回報與實際場地不符">回報與實際場地不符</option>
+                    </optgroup>
+                  )}
                 </select>
               </div>
 
