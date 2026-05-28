@@ -16,7 +16,7 @@ function Home() {
   ]);
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showPlayabilityInfo, setShowPlayabilityInfo] = useState(false);
+  const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
     { id: 2, text: '系統提醒：主揪更新了揪團注意事項', time: '1 小時前', read: true }
@@ -271,44 +271,44 @@ function Home() {
               <span>桃園市 26°C</span>
               <div 
                 style={{ position: 'relative', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#64748b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
-                onMouseEnter={() => setShowPlayabilityInfo(true)}
-                onMouseLeave={() => setShowPlayabilityInfo(false)}
+                onMouseEnter={() => setShowAqiInfo(true)}
+                onMouseLeave={() => setShowAqiInfo(false)}
               >
-                <span>適合遊玩指數：95</span>
+                <span>空氣品質 (AQI)：45</span>
                 <HelpCircle size={14} style={{ cursor: 'pointer', color: '#94a3b8' }} />
                 
-                {showPlayabilityInfo && (
+                {showAqiInfo && (
                   <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', width: '360px', backgroundColor: '#1e293b', color: 'white', padding: '16px', borderRadius: '8px', fontSize: '13px', fontWeight: 'normal', zIndex: 10, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', lineHeight: '1.5', cursor: 'default' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '16px' }}>指數級別與建議</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '16px' }}>空氣品質指標 (AQI) 與建議</div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', marginBottom: '8px', color: '#94a3b8', fontSize: '13px' }}>
-                      <div>分數區間</div>
-                      <div>適合度</div>
-                      <div>運動建議</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 80px 1fr', gap: '12px', marginBottom: '8px', color: '#94a3b8', fontSize: '13px' }}>
+                      <div>AQI 區間</div>
+                      <div>空氣品質</div>
+                      <div>活動建議</div>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
-                      <div>85 - 100</div>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#22c55e', fontSize: '14px', lineHeight: '1' }}>●</span> 極佳</div>
-                      <div style={{ color: '#e2e8f0' }}>天氣完美，非常適合舉辦比賽或長時間運動。</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 80px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>0 - 50</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#22c55e', fontSize: '14px', lineHeight: '1' }}>●</span> 良好</div>
+                      <div style={{ color: '#e2e8f0' }}>空氣品質極佳，非常適合戶外活動。</div>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
-                      <div>60 - 84</div>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#eab308', fontSize: '14px', lineHeight: '1' }}>●</span> 良好</div>
-                      <div style={{ color: '#e2e8f0' }}>天氣尚可，可能稍熱、稍冷或有微風，注意補充水分。</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 80px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>51 - 100</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#eab308', fontSize: '14px', lineHeight: '1' }}>●</span> 普通</div>
+                      <div style={{ color: '#e2e8f0' }}>空氣品質尚可，極少數敏感族群可能產生症狀。</div>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
-                      <div>30 - 59</div>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#f97316', fontSize: '14px', lineHeight: '1' }}>●</span> 欠佳</div>
-                      <div style={{ color: '#e2e8f0' }}>有陣雨（室外）或天氣極端，建議縮短運動時間。</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 80px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>101 - 150</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#f97316', fontSize: '14px', lineHeight: '1' }}>●</span> 敏感族群<br/>不健康</div>
+                      <div style={{ color: '#e2e8f0' }}>敏感族群可能會產生健康影響，應減少戶外劇烈活動。</div>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
-                      <div>0 - 29</div>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#ef4444', fontSize: '14px', lineHeight: '1' }}>●</span> 危險</div>
-                      <div style={{ color: '#e2e8f0' }}>場地濕滑、暴雨、颱風或空污嚴重，請勿前往。</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 80px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>151 - 200</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#ef4444', fontSize: '14px', lineHeight: '1' }}>●</span> 所有族群<br/>不健康</div>
+                      <div style={{ color: '#e2e8f0' }}>對所有人的健康開始產生影響，應減少戶外活動。</div>
                     </div>
                     
                     <div style={{ position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
