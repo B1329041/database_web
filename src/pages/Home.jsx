@@ -15,7 +15,7 @@ function Home() {
     { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園市龜山區 桃園虎頭山公園', facilities: ['廁所'], currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
   ]);
 
-  const [reputationScore, setReputationScore] = useState(60); // 模擬信譽分數
+  const [reputationScore, setReputationScore] = useState(100); // 模擬信譽分數
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [notifications, setNotifications] = useState([
