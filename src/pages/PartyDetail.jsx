@@ -476,7 +476,7 @@ function PartyDetail() {
                     <option value="騷擾與人身攻擊">騷擾與人身攻擊</option>
                     <option value="肢體暴力">肢體暴力</option>
                   </optgroup>
-                  {reportingUser === party.host && (
+                  {reportingUser === party.participants?.[0]?.name && (
                     <optgroup label="主揪專屬原因">
                       <option value="未回報場地">未回報場地</option>
                       <option value="惡意抬價">惡意抬價</option>
