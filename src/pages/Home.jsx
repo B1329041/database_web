@@ -278,9 +278,39 @@ function Home() {
                 <HelpCircle size={14} style={{ cursor: 'pointer', color: '#94a3b8' }} />
                 
                 {showPlayabilityInfo && (
-                  <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', width: '220px', backgroundColor: '#1e293b', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'normal', zIndex: 10, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', lineHeight: '1.5' }}>
-                    <strong>遊玩指數說明：</strong><br/>
-                    這是一個綜合天氣、氣溫、降雨機率等因素，為你計算出今天有多適合出門運動的參考分數（0~100）。
+                  <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', width: '360px', backgroundColor: '#1e293b', color: 'white', padding: '16px', borderRadius: '8px', fontSize: '13px', fontWeight: 'normal', zIndex: 10, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', lineHeight: '1.5', cursor: 'default' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '16px' }}>指數級別與建議</div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', marginBottom: '8px', color: '#94a3b8', fontSize: '13px' }}>
+                      <div>分數區間</div>
+                      <div>適合度</div>
+                      <div>運動建議</div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>85 - 100</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#22c55e', fontSize: '14px', lineHeight: '1' }}>●</span> 極佳</div>
+                      <div style={{ color: '#e2e8f0' }}>天氣完美，非常適合舉辦比賽或長時間運動。</div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>60 - 84</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#eab308', fontSize: '14px', lineHeight: '1' }}>●</span> 良好</div>
+                      <div style={{ color: '#e2e8f0' }}>天氣尚可，可能稍熱、稍冷或有微風，注意補充水分。</div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>30 - 59</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#f97316', fontSize: '14px', lineHeight: '1' }}>●</span> 欠佳</div>
+                      <div style={{ color: '#e2e8f0' }}>有陣雨（室外）或天氣極端，建議縮短運動時間。</div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1fr', gap: '12px', padding: '12px 0', borderTop: '1px solid #334155' }}>
+                      <div>0 - 29</div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}><span style={{ color: '#ef4444', fontSize: '14px', lineHeight: '1' }}>●</span> 危險</div>
+                      <div style={{ color: '#e2e8f0' }}>場地濕滑、暴雨、颱風或空污嚴重，請勿前往。</div>
+                    </div>
+                    
                     <div style={{ position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
                   </div>
                 )}
