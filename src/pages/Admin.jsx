@@ -16,9 +16,9 @@ function Admin() {
 
   // 模擬揪團房間資料 (用於 Demo 工具)
   const [parties, setParties] = useState([
-    { id: 1, title: '今晚巨蛋鬥牛', status: '招募中', time: '今日 20:00' },
-    { id: 2, title: '假日缺一咖打牌', status: '招募中', time: '本週六 14:00' },
-    { id: 3, title: '下班輕鬆打羽球', status: '招募中', time: '明日 19:00' },
+    { id: 1, title: '今晚巨蛋鬥牛', status: '招募中', time: '今日 20:00', location: '桃園市桃園區 桃園巨蛋室外籃球場' },
+    { id: 2, title: '假日缺一咖打牌', status: '招募中', time: '本週六 14:00', location: '桃園市中壢區 中壢車站附近桌遊店' },
+    { id: 3, title: '下班輕鬆打羽球', status: '招募中', time: '明日 19:00', location: '桃園市桃園區 桃園國民運動中心' },
   ]);
 
   // 模擬公告資料
@@ -83,7 +83,18 @@ function Admin() {
   };
 
   const handleDeleteVenue = (id) => {
-    if (window.confirm('確定要刪除此場地嗎？')) {
+    const venueToDelete = venues.find(v => v.id === id);
+    if (!venueToDelete) return;
+
+    // 檢查是否有正在進行中的揪團使用此場地
+    const isVenueInUse = parties.some(p => p.location && p.location.includes(venueToDelete.name));
+    
+    if (isVenueInUse) {
+      alert(`無法刪除！目前有揪團正在使用「${venueToDelete.name}」。\n請先確保該場地無人使用後再嘗試刪除。`);
+      return;
+    }
+
+    if (window.confirm(`確定要刪除場地「${venueToDelete.name}」嗎？`)) {
       setVenues(venues.filter(v => v.id !== id));
     }
   };
