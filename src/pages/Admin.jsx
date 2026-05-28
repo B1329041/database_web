@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle } from 'lucide-react';
 import '../App.css';
 
 function Admin() {
@@ -370,7 +370,7 @@ function Admin() {
             <h2 style={{ marginBottom: '32px' }}>使用者建議與回饋</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {feedbacks.map(f => (
+              {feedbacks.filter(f => f.status !== 'resolved').map(f => (
                 <div key={f.id} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -409,17 +409,15 @@ function Admin() {
                     >
                       {f.status === 'processing' ? '取消標記' : '標記處理'}
                     </button>
-                    <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} onClick={() => {
-                      if(window.confirm('確定要刪除這條回饋嗎？')) {
-                        setFeedbacks(feedbacks.filter(fb => fb.id !== f.id));
-                      }
+                    <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={() => {
+                      setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, status: 'resolved' } : fb));
                     }}>
-                      <Trash2 size={18} />
+                      <CheckCircle size={18} /> 結案
                     </button>
                   </div>
                 </div>
               ))}
-              {feedbacks.length === 0 && (
+              {feedbacks.filter(f => f.status !== 'resolved').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>
                   目前沒有待處理的回饋。
                 </div>
