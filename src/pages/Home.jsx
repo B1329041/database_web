@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudSun, MapPin, Clock } from 'lucide-react';
+import { CloudSun, MapPin, Clock, Bell } from 'lucide-react';
 import '../App.css';
 
 function Home() {
@@ -13,6 +13,12 @@ function Home() {
     { id: 3, title: '下班輕鬆打羽球', type: '羽球', level: '新手', time: '明天 19:00', location: '桃園市桃園區 桃園國民運動中心', facilities: ['冷氣', '飲水機', '廁所', '淋浴間'], currentPlayers: 2, maxPlayers: 4, currentWaitlist: 0, maxWaitlist: 2, participants: ['羽球控', '小白'], waitlist: [] },
     { id: 4, title: '週末休閒打桌球', type: '桌球', level: '休閒', time: '週日 10:00', location: '桃園市平鎮區 平鎮國民運動中心', facilities: ['冷氣', '飲水機', '廁所', '淋浴間'], currentPlayers: 1, maxPlayers: 2, currentWaitlist: 0, maxWaitlist: 2, participants: ['桌球大師'], waitlist: [] },
     { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園市龜山區 桃園虎頭山公園', facilities: ['廁所'], currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
+  ]);
+
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
+    { id: 2, text: '系統提醒：主揪更新了揪團注意事項', time: '1 小時前', read: true }
   ]);
 
   // 台灣行政區與球場資料 (縣市 -> 區域 -> 球場)
@@ -193,10 +199,59 @@ function Home() {
       {/* 導覽列 */}
       <nav className="navbar">
         <div className="navbar-logo">不揪ㄛ</div>
-        <div className="navbar-actions">
+        <div className="navbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
           <button className="btn-outline" onClick={() => setIsFeedbackOpen(true)}>意見回饋</button>
           <button className="btn-primary" onClick={() => navigate('/profile')}>個人</button>
           <button className="btn-outline" onClick={handleLogout}>登出</button>
+          
+          <button 
+            className="btn-outline" 
+            style={{ position: 'relative', padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px' }}
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            <Bell size={18} color="#475569" />
+            {notifications.some(n => !n.read) && (
+              <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: '#ef4444', width: '10px', height: '10px', borderRadius: '50%' }}></span>
+            )}
+          </button>
+          
+          {/* 通知中心下拉選單 */}
+          {showNotifications && (
+            <div style={{ position: 'absolute', top: '100%', right: '0', marginTop: '12px', width: '300px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', zIndex: 1000, overflow: 'hidden', border: '1px solid #e2e8f0', textAlign: 'left' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: '700', color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                通知中心
+                <span 
+                  style={{ fontSize: '12px', color: '#7995a5', cursor: 'pointer', fontWeight: 'normal' }}
+                  onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
+                >
+                  全部標示為已讀
+                </span>
+              </div>
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {notifications.length > 0 ? (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id} 
+                      style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
+                      onClick={() => {
+                        setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
+                      }}
+                    >
+                      <div style={{ width: '8px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
+                        {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>目前沒有新通知</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
