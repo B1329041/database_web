@@ -268,7 +268,7 @@ function Home() {
             <h2 style={{ marginBottom: 0 }}>揪團大廳</h2>
             <div className="weather-widget">
               <span className="weather-icon" style={{ display: 'flex' }}><CloudSun size={18} /></span>
-              <span>桃園市 26°C 適合運動的好天氣</span>
+              <span>桃園市 26°C</span>
               <div 
                 style={{ position: 'relative', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#64748b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
                 onMouseEnter={() => setShowPlayabilityInfo(true)}
