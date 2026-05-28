@@ -56,14 +56,21 @@ function PartyDetail() {
   }, [location.state, defaultParty]);
 
   const [party, setParty] = useState(initialParty);
-  const [hasJoined, setHasJoined] = useState(false);
+  
+  // 判斷當前使用者是否為主揪或已加入
+  const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || initialParty.participants?.[0]?.name === '主揪人';
+  const initialHasJoined = isUserHost || 
+                           initialParty.participants?.some(p => p.name === '我 (使用者)') || 
+                           initialParty.waitlist?.some(p => p.name === '我 (使用者)');
+
+  const [hasJoined, setHasJoined] = useState(initialHasJoined);
   const [joinType, setJoinType] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
   const [selectedMember, setSelectedMember] = useState(null); // 新增：被選擇查看資料的成員
   
   // 新增：場地狀態與檢舉功能狀態
-  const [isHostView, setIsHostView] = useState(true); // 測試用
+  const [isHostView, setIsHostView] = useState(isUserHost); // 根據是否為主揪動態切換
   const [isTimeApproaching, setIsTimeApproaching] = useState(false); // 測試用：模擬距離活動小於30分
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
@@ -326,11 +333,17 @@ function PartyDetail() {
             </div>
 
             {/* 報名參加按鈕 (居中顯示於名單按鈕下方) */}
-            <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '20px auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', backgroundColor: '#f1f5f9', padding: '8px', borderRadius: '8px', maxWidth: '600px' }}>
-              <span style={{ color: '#f59e0b' }}>⚠️</span> 取消截止時間：05/28 20:00，逾期將無法取消報名
-            </div>
+            {!isHostView && (
+              <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '20px auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', backgroundColor: '#f1f5f9', padding: '8px', borderRadius: '8px', maxWidth: '600px' }}>
+                <span style={{ color: '#f59e0b' }}>⚠️</span> 取消截止時間：05/28 20:00，逾期將無法取消報名
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              {hasJoined ? (
+              {isHostView ? (
+                <div style={{ padding: '12px 24px', color: '#0ea5e9', fontWeight: 'bold', backgroundColor: '#f0f9ff', borderRadius: '12px', textAlign: 'center', border: '1px solid #bae6fd' }}>
+                  👑 您是本局主揪，已自動參加本球局
+                </div>
+              ) : hasJoined ? (
                 <button className="btn-action cancel" onClick={handleCancel}>
                   取消報名
                 </button>
@@ -400,7 +413,7 @@ function PartyDetail() {
       {selectedMember && (
         <div className="modal-overlay" onClick={() => setSelectedMember(null)} style={{ zIndex: 1100 }}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center', position: 'relative' }}>
-            {selectedMember.name !== '我 (使用者)' && (
+            {hasJoined && selectedMember.name !== '我 (使用者)' && selectedMember.name !== '我 (主揪)' && (
               <button 
                 onClick={() => { setShowReportModal(true); setReportingUser(selectedMember.name); setSelectedMember(null); }}
                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
