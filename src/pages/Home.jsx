@@ -15,6 +15,7 @@ function Home() {
     { id: 5, title: '虎頭山排球友誼賽', type: '排球', level: '休閒', time: '週六 16:00', location: '桃園市龜山區 桃園虎頭山公園', facilities: ['廁所'], currentPlayers: 12, maxPlayers: 12, currentWaitlist: 2, maxWaitlist: 2, participants: ['P1','P2','P3','P4','P5','P6','P7','P8','P9','P10','P11','P12'], waitlist: ['W1', 'W2'] },
   ]);
 
+  const [reputationScore, setReputationScore] = useState(60); // 模擬信譽分數
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [notifications, setNotifications] = useState([
@@ -392,7 +393,13 @@ function Home() {
 
       {/* 右下角浮動發起按鈕 */}
       <div className="fab-container">
-        <button className="fab-btn" onClick={() => setIsModalOpen(true)}>
+        <button className="fab-btn" onClick={() => {
+          if (reputationScore <= 60) {
+            alert(`⚠️ 你的信譽分數過低（目前：${reputationScore}分），已遭到警告，目前無法發起新揪團。請保持良好參與紀錄以恢復信譽。`);
+            return;
+          }
+          setIsModalOpen(true);
+        }}>
           <span className="fab-icon">+</span>
           發起揪團
         </button>
