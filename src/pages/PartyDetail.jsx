@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye } from 'lucide-react';
+import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye, Bell } from 'lucide-react';
 import '../App.css';
 
 function PartyDetail() {
@@ -63,6 +63,12 @@ function PartyDetail() {
   
   // 新增：場地狀態與檢舉功能狀態
   const [isHostView, setIsHostView] = useState(true); // 測試用
+  const [isTimeApproaching, setIsTimeApproaching] = useState(false); // 測試用：模擬距離活動小於30分
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
+    { id: 2, text: '系統提醒：主揪更新了揪團注意事項', time: '1 小時前', read: true }
+  ]);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('未出現');
   const [reportDetail, setReportDetail] = useState('');
@@ -137,10 +143,63 @@ function PartyDetail() {
     <div className="home-container">
       <nav className="navbar">
         <div className="navbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>不揪ㄛ</div>
-        <div className="navbar-actions" style={{ display: 'flex', gap: '10px' }}>
+        <div className="navbar-actions" style={{ display: 'flex', gap: '10px', position: 'relative' }}>
+          <button className="btn-outline" onClick={() => setIsTimeApproaching(!isTimeApproaching)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 10px', borderColor: isTimeApproaching ? '#f59e0b' : '#e2e8f0', color: isTimeApproaching ? '#f59e0b' : '#64748b' }}>
+            <Clock size={14} /> {isTimeApproaching ? '活動快開始了' : '距離活動還很久'}
+          </button>
           <button className="btn-outline" onClick={() => setIsHostView(!isHostView)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 10px' }}>
             <Eye size={14} /> {isHostView ? '主揪視角' : '一般視角'}
           </button>
+          
+          <button 
+            className="btn-outline" 
+            style={{ position: 'relative', padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            <Bell size={18} color="#475569" />
+            {notifications.some(n => !n.read) && (
+              <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: '#ef4444', width: '10px', height: '10px', borderRadius: '50%' }}></span>
+            )}
+          </button>
+          
+          {/* 通知中心下拉選單 */}
+          {showNotifications && (
+            <div style={{ position: 'absolute', top: '100%', right: '40px', marginTop: '12px', width: '300px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', zIndex: 1000, overflow: 'hidden', border: '1px solid #e2e8f0', textAlign: 'left' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: '700', color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                通知中心
+                <span 
+                  style={{ fontSize: '12px', color: '#7995a5', cursor: 'pointer', fontWeight: 'normal' }}
+                  onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
+                >
+                  全部標示為已讀
+                </span>
+              </div>
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {notifications.length > 0 ? (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id} 
+                      style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
+                      onClick={() => {
+                        setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
+                      }}
+                    >
+                      <div style={{ width: '8px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
+                        {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>目前沒有新通知</div>
+                )}
+              </div>
+            </div>
+          )}
+
           <button className="btn-outline" onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}>
             <ArrowLeft size={16} /> 返回大廳
           </button>
@@ -177,7 +236,7 @@ function PartyDetail() {
           </div>
 
           <div style={{ padding: '40px' }}>
-            {isHostView && (
+            {isHostView && isTimeApproaching && (
               <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 主揪管理面板</h3>
                 <div style={{ display: 'flex', gap: '12px' }}>
