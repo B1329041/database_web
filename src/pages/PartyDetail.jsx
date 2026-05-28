@@ -340,9 +340,9 @@ function PartyDetail() {
             )}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {isHostView ? (
-                <div style={{ padding: '12px 24px', color: '#0ea5e9', fontWeight: 'bold', backgroundColor: '#f0f9ff', borderRadius: '12px', textAlign: 'center', border: '1px solid #bae6fd' }}>
-                  👑 您是本局主揪，已自動參加本球局
-                </div>
+                <button className="btn-action cancel" style={{ width: '100%' }} onClick={() => { alert('球局已解散！'); navigate('/'); }}>
+                  解散球局
+                </button>
               ) : hasJoined ? (
                 <button className="btn-action cancel" onClick={handleCancel}>
                   取消報名
@@ -413,7 +413,7 @@ function PartyDetail() {
       {selectedMember && (
         <div className="modal-overlay" onClick={() => setSelectedMember(null)} style={{ zIndex: 1100 }}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center', position: 'relative' }}>
-            {hasJoined && selectedMember.name !== '我 (使用者)' && selectedMember.name !== '我 (主揪)' && (
+            {(isHostView || party.participants.some(p => p.name === '我 (使用者)')) && selectedMember.name !== '我 (使用者)' && selectedMember.name !== '我 (主揪)' && (
               <button 
                 onClick={() => { setShowReportModal(true); setReportingUser(selectedMember.name); setSelectedMember(null); }}
                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
