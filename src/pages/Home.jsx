@@ -503,7 +503,11 @@ function Home() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div className="form-group">
-                  <label className="form-label">人數需求 (最少 ~ 最多)</label>
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    人數需求 (最少 ~ 最多)
+                    <span title="請填寫包含主揪在內的總人數！" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '11px', fontWeight: 'bold', cursor: 'help' }}>?</span>
+                  </label>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>* 填寫人數需包含主揪自己（即全部總共幾人）</div>
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <input required type="number" min="1" max="20" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
                     <span style={{ color: '#64748b' }}>~</span>
