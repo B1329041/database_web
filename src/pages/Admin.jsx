@@ -29,9 +29,9 @@ function Admin() {
 
   // 模擬使用者回饋資料
   const [feedbacks, setFeedbacks] = useState([
-    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25', status: 'pending' },
-    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25', status: 'pending' },
-    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24', status: 'pending' },
+    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25', is_handled: false },
+    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25', is_handled: false },
+    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24', is_handled: false },
   ]);
 
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
@@ -370,7 +370,7 @@ function Admin() {
             <h2 style={{ marginBottom: '32px' }}>使用者建議與回饋</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {feedbacks.filter(f => f.status !== 'resolved' && f.status !== 'ignored').map(f => (
+              {feedbacks.filter(f => !f.is_handled).map(f => (
                 <div key={f.id} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -397,32 +397,15 @@ function Admin() {
                     {f.content}
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px', alignItems: 'center' }}>
-                    {f.status === 'processing' && (
-                      <span style={{ fontSize: '13px', color: '#10b981', fontWeight: '700', marginRight: 'auto', paddingLeft: '52px' }}>
-                        ✓ 處理中
-                      </span>
-                    )}
-                    <button 
-                      className="btn-outline" 
-                      style={{ padding: '6px 16px', fontSize: '13px', backgroundColor: f.status === 'processing' ? '#f8fafc' : 'white', borderColor: f.status === 'processing' ? '#cbd5e1' : '#e2e8f0' }} 
-                      onClick={() => setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, status: fb.status === 'processing' ? 'pending' : 'processing' } : fb))}
-                    >
-                      {f.status === 'processing' ? '取消標記' : '標記處理'}
-                    </button>
-                    <button style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={() => {
-                      setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, status: 'ignored' } : fb));
-                    }}>
-                      <XCircle size={18} /> 忽略
-                    </button>
                     <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={() => {
-                      setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, status: 'resolved' } : fb));
+                      setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, is_handled: true } : fb));
                     }}>
-                      <CheckCircle size={18} /> 結案
+                      <CheckCircle size={18} /> 標記完成
                     </button>
                   </div>
                 </div>
               ))}
-              {feedbacks.filter(f => f.status !== 'resolved' && f.status !== 'ignored').length === 0 && (
+              {feedbacks.filter(f => !f.is_handled).length === 0 && (
                 <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>
                   目前沒有待處理的回饋。
                 </div>
