@@ -357,7 +357,6 @@ function Home() {
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>發起新揪團</h3>
-              <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
             <form onSubmit={handleCreateParty}>
               <div className="form-group">
