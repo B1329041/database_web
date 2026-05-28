@@ -20,7 +20,9 @@ function Home() {
   const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
-    { id: 2, text: '系統提醒：主揪更新了揪團注意事項', time: '1 小時前', read: true }
+    { id: 2, text: '⏰ 系統提醒：你報名的「今晚巨蛋鬥牛」即將在 1 小時後開始，請準備出發！', time: '12 分鐘前', read: false },
+    { id: 3, text: '📅 系統提醒：你報名的「週末休閒打桌球」將在明天開始，請記得準時出席喔！', time: '1 小時前', read: true },
+    { id: 4, text: '系統提醒：主揪更新了揪團注意事項', time: '2 小時前', read: true }
   ]);
 
   // 台灣行政區與球場資料 (縣市 -> 區域 -> 球場)
