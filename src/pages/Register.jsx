@@ -11,6 +11,11 @@ function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('請輸入有效的電子郵件格式！');
+      return;
+    }
     if (password !== confirmPassword) {
       alert('兩次密碼輸入不一致喔！');
       return;
