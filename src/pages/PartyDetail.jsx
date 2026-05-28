@@ -81,6 +81,7 @@ function PartyDetail() {
   const [reportReason, setReportReason] = useState('未出現');
   const [reportDetail, setReportDetail] = useState('');
   const [reportingUser, setReportingUser] = useState(null);
+  const [reportedUsers, setReportedUsers] = useState([]); // 新增：紀錄已檢舉的用戶名
   const [showLevelWarningModal, setShowLevelWarningModal] = useState(false); // 等級不符警告
 
   const getLevelColor = (lv) => {
@@ -414,12 +415,21 @@ function PartyDetail() {
         <div className="modal-overlay" onClick={() => setSelectedMember(null)} style={{ zIndex: 1100 }}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center', position: 'relative' }}>
             {(isHostView || party.participants.some(p => p.name === '我 (使用者)')) && selectedMember.name !== '我 (使用者)' && selectedMember.name !== '我 (主揪)' && (
-              <button 
-                onClick={() => { setShowReportModal(true); setReportingUser(selectedMember.name); setSelectedMember(null); }}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
-              >
-                <AlertTriangle size={16} /> 檢舉
-              </button>
+              reportedUsers.includes(selectedMember.name) ? (
+                <button 
+                  disabled
+                  style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '13px', fontWeight: '700' }}
+                >
+                  <AlertTriangle size={16} /> 已檢舉
+                </button>
+              ) : (
+                <button 
+                  onClick={() => { setShowReportModal(true); setReportingUser(selectedMember.name); setSelectedMember(null); }}
+                  style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
+                >
+                  <AlertTriangle size={16} /> 檢舉
+                </button>
+              )
             )}
             <div className="avatar-placeholder" style={{ width: '80px', height: '80px', fontSize: '32px', marginBottom: '16px', margin: '0 auto 16px auto' }}>
               {selectedMember.name.charAt(0)}
@@ -518,6 +528,9 @@ function PartyDetail() {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowReportModal(false)}>取消</button>
               <button className="login-button" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={() => {
+                if (reportingUser) {
+                  setReportedUsers([...reportedUsers, reportingUser]);
+                }
                 setShowReportModal(false);
                 setReportingUser(null);
                 showToast('檢舉已送出，管理團隊將會盡快審查。');
