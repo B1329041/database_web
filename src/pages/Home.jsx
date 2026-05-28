@@ -317,7 +317,9 @@ function Home() {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <span className="party-type">{party.type}</span>
                     <span className="party-level">{party.level}</span>
-                    <span className="party-level">{party.genderLimit || '不限'}</span>
+                    {party.genderLimit && party.genderLimit !== '不限' && (
+                      <span className="party-level">{party.genderLimit}</span>
+                    )}
                   </div>
                   <span className="party-status" style={{ color: statusColor }}>{statusText}</span>
                 </div>
@@ -351,7 +353,7 @@ function Home() {
 
       {/* 發起揪團 Modal */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+        <div className="modal-overlay">
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '750px' }}>
             <div className="modal-header">
               <h3>發起新揪團</h3>
@@ -379,12 +381,10 @@ function Home() {
                   <div className="form-group">
                     <label className="form-label">程度</label>
                     <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
-                      <option value="不限">不限</option>
-                      <option value="S">S (最高)</option>
-                      <option value="A">A (進階)</option>
-                      <option value="B">B (中等)</option>
-                      <option value="C">C (新手)</option>
+                      <option value="新手">新手</option>
                       <option value="休閒">休閒</option>
+                      <option value="高手">高手</option>
+                      <option value="不限">不限</option>
                     </select>
                   </div>
                   <div className="form-group">
