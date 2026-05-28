@@ -326,6 +326,9 @@ function PartyDetail() {
             </div>
 
             {/* 報名參加按鈕 (居中顯示於名單按鈕下方) */}
+            <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '20px auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', backgroundColor: '#f1f5f9', padding: '8px', borderRadius: '8px', maxWidth: '600px' }}>
+              <span style={{ color: '#f59e0b' }}>⚠️</span> 提醒：活動開始前 24 小時（即 05/29 20:00 前）可免費退出或取消報名
+            </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {hasJoined ? (
                 <button className="btn-action cancel" onClick={handleCancel}>
