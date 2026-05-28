@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudSun, MapPin, Clock, Bell } from 'lucide-react';
+import { CloudSun, MapPin, Clock, Bell, HelpCircle } from 'lucide-react';
 import '../App.css';
 
 function Home() {
@@ -16,6 +16,7 @@ function Home() {
   ]);
 
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showPlayabilityInfo, setShowPlayabilityInfo] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
     { id: 2, text: '系統提醒：主揪更新了揪團注意事項', time: '1 小時前', read: true }
@@ -268,9 +269,22 @@ function Home() {
             <div className="weather-widget">
               <span className="weather-icon" style={{ display: 'flex' }}><CloudSun size={18} /></span>
               <span>桃園市 26°C 適合運動的好天氣</span>
-              <span style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#f59e0b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                適合遊玩指數：⭐⭐⭐⭐⭐
-              </span>
+              <div 
+                style={{ position: 'relative', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#64748b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
+                onMouseEnter={() => setShowPlayabilityInfo(true)}
+                onMouseLeave={() => setShowPlayabilityInfo(false)}
+              >
+                <span>適合遊玩指數：95</span>
+                <HelpCircle size={14} style={{ cursor: 'pointer', color: '#94a3b8' }} />
+                
+                {showPlayabilityInfo && (
+                  <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', width: '220px', backgroundColor: '#1e293b', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'normal', zIndex: 10, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', lineHeight: '1.5' }}>
+                    <strong>遊玩指數說明：</strong><br/>
+                    這是一個綜合天氣、氣溫、降雨機率等因素，為你計算出今天有多適合出門運動的參考分數（0~100）。
+                    <div style={{ position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
