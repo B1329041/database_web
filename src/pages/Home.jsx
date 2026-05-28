@@ -199,59 +199,61 @@ function Home() {
       {/* 導覽列 */}
       <nav className="navbar">
         <div className="navbar-logo">不揪ㄛ</div>
-        <div className="navbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
+        <div className="navbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <button 
+              className="btn-outline" 
+              style={{ position: 'relative', padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell size={18} color="#475569" />
+              {notifications.some(n => !n.read) && (
+                <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: '#ef4444', width: '10px', height: '10px', borderRadius: '50%' }}></span>
+              )}
+            </button>
+            
+            {/* 通知中心下拉選單 */}
+            {showNotifications && (
+              <div style={{ position: 'absolute', top: '100%', right: '0', marginTop: '12px', width: '300px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', zIndex: 1000, overflow: 'hidden', border: '1px solid #e2e8f0', textAlign: 'left' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: '700', color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  通知中心
+                  <span 
+                    style={{ fontSize: '12px', color: '#7995a5', cursor: 'pointer', fontWeight: 'normal' }}
+                    onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
+                  >
+                    全部標示為已讀
+                  </span>
+                </div>
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {notifications.length > 0 ? (
+                    notifications.map(n => (
+                      <div 
+                        key={n.id} 
+                        style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
+                        onClick={() => {
+                          setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
+                        }}
+                      >
+                        <div style={{ width: '8px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
+                          {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
+                          <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>目前沒有新通知</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button className="btn-outline" onClick={() => setIsFeedbackOpen(true)}>意見回饋</button>
           <button className="btn-primary" onClick={() => navigate('/profile')}>個人</button>
           <button className="btn-outline" onClick={handleLogout}>登出</button>
-          
-          <button 
-            className="btn-outline" 
-            style={{ position: 'relative', padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px' }}
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <Bell size={18} color="#475569" />
-            {notifications.some(n => !n.read) && (
-              <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: '#ef4444', width: '10px', height: '10px', borderRadius: '50%' }}></span>
-            )}
-          </button>
-          
-          {/* 通知中心下拉選單 */}
-          {showNotifications && (
-            <div style={{ position: 'absolute', top: '100%', right: '0', marginTop: '12px', width: '300px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', zIndex: 1000, overflow: 'hidden', border: '1px solid #e2e8f0', textAlign: 'left' }}>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: '700', color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                通知中心
-                <span 
-                  style={{ fontSize: '12px', color: '#7995a5', cursor: 'pointer', fontWeight: 'normal' }}
-                  onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
-                >
-                  全部標示為已讀
-                </span>
-              </div>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {notifications.length > 0 ? (
-                  notifications.map(n => (
-                    <div 
-                      key={n.id} 
-                      style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
-                      onClick={() => {
-                        setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
-                      }}
-                    >
-                      <div style={{ width: '8px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
-                        {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
-                        <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>目前沒有新通知</div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
