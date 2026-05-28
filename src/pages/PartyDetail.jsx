@@ -327,7 +327,7 @@ function PartyDetail() {
 
             {/* 報名參加按鈕 (居中顯示於名單按鈕下方) */}
             <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', margin: '20px auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', backgroundColor: '#f1f5f9', padding: '8px', borderRadius: '8px', maxWidth: '600px' }}>
-              <span style={{ color: '#f59e0b' }}>⚠️</span> 取消截止日期：活動開始前 2 天（即 05/28 20:00 前），逾期將無法取消報名
+              <span style={{ color: '#f59e0b' }}>⚠️</span> 取消截止時間：05/28 20:00，逾期將無法取消報名
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {hasJoined ? (
