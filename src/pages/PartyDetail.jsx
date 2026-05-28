@@ -340,7 +340,7 @@ function PartyDetail() {
             )}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {isHostView ? (
-                <button className="btn-action cancel" style={{ width: '100%' }} onClick={() => { alert('球局已取消！'); navigate('/'); }}>
+                <button className="btn-action cancel" style={{ width: '100%' }} onClick={() => { alert('球局已取消！'); navigate('/home'); }}>
                   取消揪團
                 </button>
               ) : hasJoined ? (
