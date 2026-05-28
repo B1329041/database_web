@@ -73,6 +73,7 @@ function PartyDetail() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('未出現');
   const [reportDetail, setReportDetail] = useState('');
+  const [reportingUser, setReportingUser] = useState(null);
   const [showLevelWarningModal, setShowLevelWarningModal] = useState(false); // 等級不符警告
 
   const getLevelColor = (lv) => {
@@ -398,7 +399,7 @@ function PartyDetail() {
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center', position: 'relative' }}>
             {selectedMember.name !== '我 (使用者)' && (
               <button 
-                onClick={() => { setShowReportModal(true); setSelectedMember(null); }}
+                onClick={() => { setShowReportModal(true); setReportingUser(selectedMember.name); setSelectedMember(null); }}
                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: '700' }}
               >
                 <AlertTriangle size={16} /> 檢舉
@@ -502,6 +503,7 @@ function PartyDetail() {
               <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowReportModal(false)}>取消</button>
               <button className="login-button" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={() => {
                 setShowReportModal(false);
+                setReportingUser(null);
                 showToast('檢舉已送出，管理團隊將會盡快審查。');
                 setReportDetail('');
               }}>送出檢舉</button>
