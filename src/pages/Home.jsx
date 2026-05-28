@@ -268,6 +268,9 @@ function Home() {
             <div className="weather-widget">
               <span className="weather-icon" style={{ display: 'flex' }}><CloudSun size={18} /></span>
               <span>桃園市 26°C 適合運動的好天氣</span>
+              <span style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#f59e0b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                適合遊玩指數：⭐⭐⭐⭐⭐
+              </span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
