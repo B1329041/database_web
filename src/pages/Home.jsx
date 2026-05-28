@@ -353,8 +353,8 @@ function Home() {
 
       {/* 發起揪團 Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '750px' }}>
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>發起新揪團</h3>
               <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
