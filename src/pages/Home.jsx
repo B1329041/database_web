@@ -90,7 +90,8 @@ function Home() {
   const [newParty, setNewParty] = useState({ 
     title: '', 
     type: '籃球', 
-    level: '休閒', 
+    level: '不限', 
+    genderLimit: '不限',
     city: '桃園市', 
     district: '桃園區', 
     venue: '桃園國民運動中心',
@@ -138,6 +139,7 @@ function Home() {
       title: newParty.title,
       type: newParty.type,
       level: newParty.level,
+      genderLimit: newParty.genderLimit,
       time: newParty.time.replace('T', ' '),
       duration: newParty.duration,
       location: fullLocation,
@@ -157,7 +159,8 @@ function Home() {
     setNewParty({ 
       title: '', 
       type: '籃球', 
-      level: '休閒', 
+      level: '不限', 
+      genderLimit: '不限',
       city: '桃園市', 
       district: '桃園區', 
       venue: '桃園國民運動中心',
@@ -314,6 +317,7 @@ function Home() {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <span className="party-type">{party.type}</span>
                     <span className="party-level">{party.level}</span>
+                    <span className="party-level">{party.genderLimit || '不限'}</span>
                   </div>
                   <span className="party-status" style={{ color: statusColor }}>{statusText}</span>
                 </div>
@@ -375,10 +379,21 @@ function Home() {
                   <div className="form-group">
                     <label className="form-label">程度</label>
                     <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
-                      <option value="新手">新手</option>
+                      <option value="不限">不限</option>
+                      <option value="S">S (最高)</option>
+                      <option value="A">A (進階)</option>
+                      <option value="B">B (中等)</option>
+                      <option value="C">C (新手)</option>
                       <option value="休閒">休閒</option>
-                      <option value="高手">高手</option>
                     </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">性別限制</label>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button type="button" className={`role-btn ${newParty.genderLimit === '不限' ? 'active' : ''}`} style={{ flex: 1, border: '1px solid #e2e8f0', padding: '8px' }} onClick={() => setNewParty({...newParty, genderLimit: '不限'})}>不限</button>
+                      <button type="button" className={`role-btn ${newParty.genderLimit === '限男' ? 'active' : ''}`} style={{ flex: 1, border: '1px solid #e2e8f0', padding: '8px' }} onClick={() => setNewParty({...newParty, genderLimit: '限男'})}>限男</button>
+                      <button type="button" className={`role-btn ${newParty.genderLimit === '限女' ? 'active' : ''}`} style={{ flex: 1, border: '1px solid #e2e8f0', padding: '8px' }} onClick={() => setNewParty({...newParty, genderLimit: '限女'})}>限女</button>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">活動時間</label>

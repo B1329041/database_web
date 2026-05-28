@@ -13,6 +13,7 @@ function PartyDetail() {
     title: '未知的揪團',
     type: '未知',
     level: '休閒',
+    genderLimit: '不限',
     time: '未知時間',
     location: '未知地點',
     duration: '2 小時',
@@ -72,6 +73,7 @@ function PartyDetail() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('未出現');
   const [reportDetail, setReportDetail] = useState('');
+  const [showLevelWarningModal, setShowLevelWarningModal] = useState(false); // 等級不符警告
 
   const getLevelColor = (lv) => {
     switch(lv) {
@@ -88,7 +90,7 @@ function PartyDetail() {
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const handleJoin = () => {
+  const confirmJoin = () => {
     const newMember = { 
       name: '我 (使用者)', 
       phone: '0987-654-321', 
@@ -114,6 +116,18 @@ function PartyDetail() {
       setJoinType('waitlist');
       setHasJoined(true);
       showToast('已進入候補名單！有人退出時系統會依序遞補。');
+    }
+  };
+
+  const handleJoin = () => {
+    const mockUserLevel = 'A'; // 假設使用者等級為 A
+    const partyLevel = party.level || '休閒';
+    
+    // 檢查等級是否匹配 (如果不限或休閒則略過，這裡簡單判斷如果不同就跳警告)
+    if (partyLevel !== '休閒' && partyLevel !== '不限' && partyLevel !== mockUserLevel) {
+      setShowLevelWarningModal(true);
+    } else {
+      confirmJoin();
     }
   };
 
@@ -215,6 +229,7 @@ function PartyDetail() {
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <span className="party-type" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}>{party.type}</span>
               <span className="party-level" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{party.level || '休閒'}</span>
+              <span className="party-level" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{party.genderLimit || '不限'}</span>
               <span style={{ 
                 backgroundColor: party.venueStatus === 'confirmed' ? '#10b981' : party.venueStatus === 'failed' ? '#ef4444' : '#f59e0b', 
                 color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' 
@@ -238,7 +253,7 @@ function PartyDetail() {
           <div style={{ padding: '40px' }}>
             {isHostView && isTimeApproaching && (
               <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
-                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 主揪管理面板</h3>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 是否借到場地？</h3>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button className="btn-primary" style={{ flex: 1, backgroundColor: '#10b981', border: 'none' }} onClick={() => { setParty({...party, venueStatus: 'confirmed'}); showToast('已通知所有成員：場地確認成功！'); }}>
                     ✅ 確認借到場地
@@ -405,6 +420,29 @@ function PartyDetail() {
             </div>
             
             <button className="login-button" onClick={() => setSelectedMember(null)}>關閉</button>
+          </div>
+        </div>
+      )}
+
+      {/* 等級不符警告 Modal */}
+      {showLevelWarningModal && (
+        <div className="modal-overlay" onClick={() => setShowLevelWarningModal(false)} style={{ zIndex: 1200 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center' }}>
+            <div style={{ color: '#f59e0b', marginBottom: '16px' }}>
+              <AlertTriangle size={48} style={{ margin: '0 auto' }} />
+            </div>
+            <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>等級不符</h3>
+            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>
+              這個揪團設定的等級是「{party.level}」，但你目前的等級為「A」。<br/><br/>
+              與目前level不符，確定要加入？
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowLevelWarningModal(false)}>取消</button>
+              <button className="btn-primary" style={{ flex: 1, backgroundColor: '#f59e0b', border: 'none' }} onClick={() => {
+                setShowLevelWarningModal(false);
+                confirmJoin();
+              }}>確定加入</button>
+            </div>
           </div>
         </div>
       )}
