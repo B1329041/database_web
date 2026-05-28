@@ -29,9 +29,9 @@ function Admin() {
 
   // 模擬使用者回饋資料
   const [feedbacks, setFeedbacks] = useState([
-    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25' },
-    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25' },
-    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24' },
+    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25', status: 'pending' },
+    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25', status: 'pending' },
+    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24', status: 'pending' },
   ]);
 
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
@@ -396,8 +396,19 @@ function Admin() {
                   <p style={{ margin: 0, fontSize: '15px', color: '#475569', lineHeight: '1.6', paddingLeft: '52px' }}>
                     {f.content}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px' }}>
-                    <button className="btn-outline" style={{ padding: '6px 16px', fontSize: '13px' }} onClick={() => alert('已標記為處理中')}>標記處理</button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px', alignItems: 'center' }}>
+                    {f.status === 'processing' && (
+                      <span style={{ fontSize: '13px', color: '#10b981', fontWeight: '700', marginRight: 'auto', paddingLeft: '52px' }}>
+                        ✓ 處理中
+                      </span>
+                    )}
+                    <button 
+                      className="btn-outline" 
+                      style={{ padding: '6px 16px', fontSize: '13px', backgroundColor: f.status === 'processing' ? '#f8fafc' : 'white', borderColor: f.status === 'processing' ? '#cbd5e1' : '#e2e8f0' }} 
+                      onClick={() => setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, status: fb.status === 'processing' ? 'pending' : 'processing' } : fb))}
+                    >
+                      {f.status === 'processing' ? '取消標記' : '標記處理'}
+                    </button>
                     <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} onClick={() => {
                       if(window.confirm('確定要刪除這條回饋嗎？')) {
                         setFeedbacks(feedbacks.filter(fb => fb.id !== f.id));
