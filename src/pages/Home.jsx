@@ -384,7 +384,7 @@ function Home() {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
                   }}>
-                    {isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                    {party.participants[0] === '我 (主揪)' || party.participants[0] === '主揪人' ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                   </button>
                 </div>
               </div>
