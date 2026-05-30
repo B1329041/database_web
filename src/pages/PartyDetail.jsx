@@ -328,6 +328,57 @@ function PartyDetail() {
               </div>
             </div>
 
+            {/* 內嵌式佈告欄 */}
+            <div className="detail-section" style={{ marginTop: '32px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <MessageCircle size={20} color="#0284c7" /> 佈告欄
+              </h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {announcements.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#94a3b8', margin: '20px 0' }}>目前沒有公告</div>
+                ) : (
+                  announcements.map(a => (
+                    <div key={a.id} style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '15px', lineHeight: '1.5', color: '#334155' }}>{a.text}</p>
+                      <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'right' }}>{a.time}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {isHostView && (
+                <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '16px', paddingTop: '16px', display: 'flex', gap: '12px' }}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="輸入要發布的公告..." 
+                    value={newAnnouncement}
+                    onChange={e => setNewAnnouncement(e.target.value)}
+                    style={{ flex: 1, margin: 0, padding: '12px 16px', fontSize: '15px' }}
+                    onKeyPress={e => {
+                      if (e.key === 'Enter' && newAnnouncement.trim()) {
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
+                        setNewAnnouncement('');
+                      }
+                    }}
+                  />
+                  <button 
+                    className="login-button" 
+                    style={{ padding: '0 24px', whiteSpace: 'nowrap', width: 'auto', fontSize: '15px' }}
+                    onClick={() => {
+                      if (newAnnouncement.trim()) {
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
+                        setNewAnnouncement('');
+                      }
+                    }}
+                  >
+                    發布
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* 參與與候補名單按鈕 */}
             <div className="detail-section" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '32px', marginBottom: '32px' }}>
               <button className="btn-outline" style={{ flex: '1 1 200px', padding: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '700', borderRadius: '12px', backgroundColor: '#f8fafc' }} onClick={() => setShowListModal('participants')}>
@@ -372,56 +423,6 @@ function PartyDetail() {
           </div>
         </div>
 
-        {/* 內嵌式佈告欄 (取代原有的 Modal) */}
-        <div className="detail-card" style={{ marginTop: '20px', padding: '32px 40px' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <MessageCircle size={20} color="#0284c7" /> 主揪佈告欄
-          </h3>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {announcements.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#94a3b8', margin: '20px 0' }}>目前沒有公告</div>
-            ) : (
-              announcements.map(a => (
-                <div key={a.id} style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '15px', lineHeight: '1.5', color: '#334155' }}>{a.text}</p>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'right' }}>{a.time}</div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {isHostView && (
-            <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '20px', paddingTop: '20px', display: 'flex', gap: '12px' }}>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="輸入要發布的公告..." 
-                value={newAnnouncement}
-                onChange={e => setNewAnnouncement(e.target.value)}
-                style={{ flex: 1, margin: 0, padding: '12px 16px', fontSize: '15px' }}
-                onKeyPress={e => {
-                  if (e.key === 'Enter' && newAnnouncement.trim()) {
-                    setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
-                    setNewAnnouncement('');
-                  }
-                }}
-              />
-              <button 
-                className="login-button" 
-                style={{ padding: '0 24px', whiteSpace: 'nowrap', width: 'auto', fontSize: '15px' }}
-                onClick={() => {
-                  if (newAnnouncement.trim()) {
-                    setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
-                    setNewAnnouncement('');
-                  }
-                }}
-              >
-                發布
-              </button>
-            </div>
-          )}
-        </div>
       </main>
 
       {/* 底部報名列 */}
