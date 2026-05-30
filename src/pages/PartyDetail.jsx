@@ -595,6 +595,8 @@ function PartyDetail() {
                 setReportDetail('');
               }}>送出檢舉</button>
             </div>
+          </div>
+        </div>
       )}
 
       {/* Toast Notification */}
