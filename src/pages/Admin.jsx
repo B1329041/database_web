@@ -94,13 +94,11 @@ function Admin() {
       return;
     }
 
-    const userInput = window.prompt(`為避免誤刪，請輸入場地名稱「${venueToDelete.name}」來確認刪除：`);
-    
-    if (userInput === venueToDelete.name) {
-      setVenues(venues.filter(v => v.id !== id));
-      alert('場地已成功刪除。');
-    } else if (userInput !== null) {
-      alert('名稱輸入不相符，刪除操作已取消。');
+    if (window.confirm(`確定要刪除場地「${venueToDelete.name}」嗎？`)) {
+      if (window.confirm('請再次確認，刪除後將無法復原！確定要刪除嗎？')) {
+        setVenues(venues.filter(v => v.id !== id));
+        alert('場地已成功刪除。');
+      }
     }
   };
 
