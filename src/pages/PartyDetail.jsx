@@ -548,31 +548,29 @@ function PartyDetail() {
         </div>
       )}
 
-      {/* 浮動佈告欄按鈕 (限已加入者或主揪可見) */}
-      {hasJoined && (
-        <button 
-          onClick={() => setShowAnnouncementModal(true)}
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            width: '56px',
-            height: '56px',
-            borderRadius: '28px',
-            backgroundColor: '#0284c7',
-            color: 'white',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.4)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            cursor: 'pointer',
-            zIndex: 1000
-          }}
-        >
-          <MessageCircle size={28} />
-        </button>
-      )}
+      {/* 浮動佈告欄按鈕 (所有人皆可見，但只有主揪能發言) */}
+      <button 
+        onClick={() => setShowAnnouncementModal(true)}
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          width: '56px',
+          height: '56px',
+          borderRadius: '28px',
+          backgroundColor: '#0284c7',
+          color: 'white',
+          border: 'none',
+          boxShadow: '0 4px 12px rgba(2, 132, 199, 0.4)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          cursor: 'pointer',
+          zIndex: 1000
+        }}
+      >
+        <MessageCircle size={28} />
+      </button>
 
       {/* 佈告欄 Modal */}
       {showAnnouncementModal && (
