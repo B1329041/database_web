@@ -367,6 +367,7 @@ function PartyDetail() {
                 <button className="btn-action join" style={{ width: '100%' }} onClick={handleJoin}>
                   報名參加
                 </button>
+              )}
             </div>
           </div>
         </div>
