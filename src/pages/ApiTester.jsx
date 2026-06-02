@@ -37,7 +37,8 @@ export default function ApiTester() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h3>Auth & Users</h3>
-          <button onClick={() => handleTest('Login', authApi.login, { phone: '0912345678', name: 'Test' })}>POST /auth/login</button>
+          <button onClick={() => handleTest('Register', authApi.register, { name: 'Test', phone: '0912345678', birthday: '2000-01-01', gender: '男' })}>POST /auth/register</button>
+          <button onClick={() => handleTest('Login', authApi.login, { phone: '0912345678' })}>POST /auth/login</button>
           <button onClick={() => handleTest('Get Profile', usersApi.getUserProfile)}>GET /users/profile</button>
           <button onClick={() => handleTest('Update Profile', usersApi.updateUserProfile, { name: 'New Name' })}>PUT /users/profile</button>
 
