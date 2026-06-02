@@ -3,7 +3,7 @@ import axiosClient from './axiosClient';
 const authApi = {
   /**
    * 使用者註冊
-   * @param {Object} data - { name, phone, birthday, gender }
+   * @param {Object} data - { name, email, password }
    * @returns {Promise}
    */
   register: (data) => {
@@ -12,7 +12,7 @@ const authApi = {
 
   /**
    * 使用者登入
-   * @param {Object} data - { phone }
+   * @param {Object} data - { email, password }
    * @returns {Promise}
    */
   login: (data) => {

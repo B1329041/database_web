@@ -10,8 +10,8 @@ const usersApi = {
   },
 
   /**
-   * 更新個人資料
-   * @param {Object} data - { name, phone, bio, avatar, levels }
+   * 更新個人資料 (建立個人檔案)
+   * @param {Object} data - { name, phone, birthday, gender, bio, avatar, levels, line_id, instagram }
    * @returns {Promise}
    */
   updateUserProfile: (data) => {
