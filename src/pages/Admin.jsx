@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle } from 'lucide-react';
+import adminApi from '../api/admin';
 import '../App.css';
 
 function Admin() {
@@ -27,12 +28,32 @@ function Admin() {
     { id: 2, title: '新場地上線！', content: '現在可以選擇「台中洲際棒球場」進行揪團囉。', date: '2026-05-20' },
   ]);
 
-  // 模擬使用者回饋資料
-  const [feedbacks, setFeedbacks] = useState([
-    { id: 1, user: '運動愛好者', type: '建議', content: '希望可以增加羽球的場地篩選功能。', date: '2026-05-25', is_handled: false },
-    { id: 2, user: '小白', type: '錯誤', content: '在手機版瀏覽時，發起按鈕有時候會擋到文字。', date: '2026-05-25', is_handled: false },
-    { id: 3, user: '羽球控', type: '場地', content: '桃園運動中心的淋浴間最近在維修喔，建議更新資訊。', date: '2026-05-24', is_handled: false },
-  ]);
+  // 真實 API 資料
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [analytics, setAnalytics] = useState({ 
+    active_users: 0, 
+    active_games: 0, 
+    system_messages: 0,
+    daily_activity: [],
+    popular_sports: []
+  });
+
+  // 載入後台資料
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const [analyticsData, feedbacksData] = await Promise.all([
+          adminApi.getAdminAnalytics(),
+          adminApi.getFeedbacks()
+        ]);
+        setAnalytics(analyticsData);
+        setFeedbacks(feedbacksData);
+      } catch (error) {
+        console.error('Admin data fetch error:', error);
+      }
+    };
+    fetchAdminData();
+  }, []);
 
   const [newVenue, setNewVenue] = useState({ name: '', city: '桃園市', district: '', facilities: '' });
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
@@ -102,18 +123,24 @@ function Admin() {
     }
   };
 
-  const handleAddAnnouncement = (e) => {
+  const handleAddAnnouncement = async (e) => {
     e.preventDefault();
     if (!newAnnouncement.title) return;
-    const announcement = {
-      id: Date.now(),
-      title: newAnnouncement.title,
-      content: newAnnouncement.content,
-      date: new Date().toISOString().split('T')[0]
-    };
-    setAnnouncements([announcement, ...announcements]);
-    setNewAnnouncement({ title: '', content: '' });
-    alert('公告已發佈！');
+    try {
+      await adminApi.createSystemAnnouncement(newAnnouncement);
+      const announcement = {
+        id: Date.now(),
+        title: newAnnouncement.title,
+        content: newAnnouncement.content,
+        date: new Date().toISOString().split('T')[0]
+      };
+      setAnnouncements([announcement, ...announcements]);
+      setNewAnnouncement({ title: '', content: '' });
+      alert('公告已發佈！');
+    } catch (error) {
+      console.error('Create announcement error:', error);
+      alert('發佈失敗，請稍後再試。');
+    }
   };
 
   const handleDeleteAnnouncement = (id) => {
@@ -187,22 +214,22 @@ function Admin() {
                 <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <TrendingUp size={16} color="#7995a5" /> 今日活躍人數
                 </div>
-                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>1,284</div>
-                <div style={{ color: '#10b981', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>↑ 12% 較昨日增長</div>
+                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>{analytics.active_users}</div>
+                <div style={{ color: '#10b981', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>即時更新中</div>
               </div>
               <div className="stat-card" style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                 <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <BarChart3 size={16} color="#10b981" /> 進行中揪團
                 </div>
-                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>42</div>
-                <div style={{ color: '#64748b', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>目前最受歡迎：籃球</div>
+                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>{analytics.active_games}</div>
+                <div style={{ color: '#64748b', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>即時更新中</div>
               </div>
               <div className="stat-card" style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                 <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Bell size={16} color="#f59e0b" /> 系統訊息
                 </div>
-                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>5</div>
-                <div style={{ color: '#f59e0b', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>有 3 條建議回饋</div>
+                <div style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b' }}>{analytics.system_messages}</div>
+                <div style={{ color: '#f59e0b', fontSize: '13px', marginTop: '8px', fontWeight: '600' }}>即時更新中</div>
               </div>
             </div>
 
@@ -210,7 +237,7 @@ function Admin() {
               <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ marginBottom: '20px' }}>近期活動熱度</h3>
                 <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '20px' }}>
-                  {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                  {(analytics.daily_activity && analytics.daily_activity.length > 0 ? analytics.daily_activity : [0,0,0,0,0,0,0]).map((h, i) => (
                     <div key={i} style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: '4px', height: '100%', position: 'relative' }}>
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#7995a5', height: `${h}%`, borderRadius: '4px' }}></div>
                     </div>
@@ -224,7 +251,7 @@ function Admin() {
               <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ marginBottom: '20px' }}>熱門運動比例</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {[['籃球', '45%'], ['麻將', '25%'], ['羽球', '15%'], ['其他', '15%']].map(([name, pct], i) => (
+                  {(analytics.popular_sports && analytics.popular_sports.length > 0 ? analytics.popular_sports : [['無資料', '0%']]).map(([name, pct], i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '14px' }}>
                         <span>{name}</span><span>{pct}</span>
@@ -395,8 +422,13 @@ function Admin() {
                     {f.content}
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px', alignItems: 'center' }}>
-                    <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={() => {
-                      setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, is_handled: true } : fb));
+                    <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={async () => {
+                      try {
+                        await adminApi.handleFeedback(f.id, '已處理');
+                        setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, is_handled: true } : fb));
+                      } catch (error) {
+                        alert('標記失敗');
+                      }
                     }}>
                       <CheckCircle size={18} /> 標記完成
                     </button>

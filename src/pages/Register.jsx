@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import authApi from '../api/auth';
 import '../App.css';
 
 function Register() {
@@ -7,9 +8,10 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -20,9 +22,18 @@ function Register() {
       alert('兩次密碼輸入不一致喔！');
       return;
     }
-    console.log('Register attempt:', { nickname, email, password });
-    // TODO: Connect to backend API
-    navigate('/setup-profile');
+
+    setIsLoading(true);
+    try {
+      await authApi.register({ name: nickname, email, password });
+      alert('註冊成功！請繼續完成個人檔案設定。');
+      navigate('/setup-profile');
+    } catch (error) {
+      console.error('Register error:', error);
+      alert('註冊失敗，請確認信箱是否已被使用或伺服器狀態！');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,8 +97,8 @@ function Register() {
             />
           </div>
           
-          <button type="submit" className="login-button" style={{ marginTop: '10px' }}>
-            完成註冊
+          <button type="submit" className="login-button" style={{ marginTop: '10px' }} disabled={isLoading}>
+            {isLoading ? '註冊中...' : '完成註冊'}
           </button>
         </form>
 

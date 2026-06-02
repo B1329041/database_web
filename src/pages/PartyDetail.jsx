@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye, Bell, MessageCircle } from 'lucide-react';
+import gamesApi from '../api/games';
+import reportsApi from '../api/reports';
 import '../App.css';
 
 function PartyDetail() {
@@ -106,32 +108,39 @@ function PartyDetail() {
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const confirmJoin = () => {
-    const newMember = { 
-      name: '我 (使用者)', 
-      phone: '0987-654-321', 
-      line: 'my_id_888',
-      age: 20,
-      level: 'A'
-    };
-    if (party.currentPlayers < party.maxPlayers) {
-      setParty(prev => ({
-        ...prev,
-        currentPlayers: prev.currentPlayers + 1,
-        participants: [...prev.participants, newMember]
-      }));
-      setJoinType('normal');
-      setHasJoined(true);
-      showToast('報名成功！你已在正取名單中。');
-    } else if (party.currentWaitlist < party.maxWaitlist) {
-      setParty(prev => ({
-        ...prev,
-        currentWaitlist: prev.currentWaitlist + 1,
-        waitlist: [...prev.waitlist, newMember]
-      }));
-      setJoinType('waitlist');
-      setHasJoined(true);
-      showToast('已進入候補名單！有人退出時系統會依序遞補。');
+  const confirmJoin = async () => {
+    try {
+      await gamesApi.joinGame(party.id);
+      
+      const newMember = { 
+        name: '我 (使用者)', 
+        phone: '0987-654-321', 
+        line: 'my_id_888',
+        age: 20,
+        level: 'A'
+      };
+      if (party.currentPlayers < party.maxPlayers) {
+        setParty(prev => ({
+          ...prev,
+          currentPlayers: prev.currentPlayers + 1,
+          participants: [...prev.participants, newMember]
+        }));
+        setJoinType('normal');
+        setHasJoined(true);
+        showToast('報名成功！你已在正取名單中。');
+      } else if (party.currentWaitlist < party.maxWaitlist) {
+        setParty(prev => ({
+          ...prev,
+          currentWaitlist: prev.currentWaitlist + 1,
+          waitlist: [...prev.waitlist, newMember]
+        }));
+        setJoinType('waitlist');
+        setHasJoined(true);
+        showToast('已進入候補名單！有人退出時系統會依序遞補。');
+      }
+    } catch (error) {
+      console.error('Join error:', error);
+      alert('報名失敗，請稍後再試！');
     }
   };
 
@@ -147,23 +156,29 @@ function PartyDetail() {
     }
   };
 
-  const handleCancel = () => {
-    if (joinType === 'normal') {
-      setParty(prev => ({
-        ...prev,
-        currentPlayers: prev.currentPlayers - 1,
-        participants: prev.participants.filter(p => p.name !== '我 (使用者)')
-      }));
-    } else if (joinType === 'waitlist') {
-      setParty(prev => ({
-        ...prev,
-        currentWaitlist: prev.currentWaitlist - 1,
-        waitlist: prev.waitlist.filter(p => p.name !== '我 (使用者)')
-      }));
+  const handleCancel = async () => {
+    try {
+      await gamesApi.cancelGame(party.id);
+      if (joinType === 'normal') {
+        setParty(prev => ({
+          ...prev,
+          currentPlayers: prev.currentPlayers - 1,
+          participants: prev.participants.filter(p => p.name !== '我 (使用者)')
+        }));
+      } else if (joinType === 'waitlist') {
+        setParty(prev => ({
+          ...prev,
+          currentWaitlist: prev.currentWaitlist - 1,
+          waitlist: prev.waitlist.filter(p => p.name !== '我 (使用者)')
+        }));
+      }
+      setHasJoined(false);
+      setJoinType(null);
+      showToast('已成功取消報名。');
+    } catch (error) {
+      console.error('Cancel error:', error);
+      alert('取消失敗，請確認伺服器狀態！');
     }
-    setHasJoined(false);
-    setJoinType(null);
-    showToast('已成功取消報名。');
   };
 
   const isFull = party.currentPlayers >= party.maxPlayers;
@@ -273,10 +288,22 @@ function PartyDetail() {
               <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 是否借到場地？</h3>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className="btn-primary" style={{ flex: 1, backgroundColor: '#10b981', border: 'none' }} onClick={() => { setParty({...party, venueStatus: 'confirmed'}); showToast('已通知所有成員：場地確認成功！'); }}>
+                  <button className="btn-primary" style={{ flex: 1, backgroundColor: '#10b981', border: 'none' }} onClick={async () => { 
+                    try {
+                      await gamesApi.updateVenueStatus(party.id, { status: 'confirmed' });
+                      setParty({...party, venueStatus: 'confirmed'}); 
+                      showToast('已通知所有成員：場地確認成功！'); 
+                    } catch(e) { alert('更新失敗'); }
+                  }}>
                     ✅ 確認借到場地
                   </button>
-                  <button className="btn-outline" style={{ flex: 1, color: '#ef4444', borderColor: '#ef4444' }} onClick={() => { setParty({...party, venueStatus: 'failed'}); showToast('已通知所有成員：活動取消！'); }}>
+                  <button className="btn-outline" style={{ flex: 1, color: '#ef4444', borderColor: '#ef4444' }} onClick={async () => { 
+                    try {
+                      await gamesApi.updateVenueStatus(party.id, { status: 'failed' });
+                      setParty({...party, venueStatus: 'failed'}); 
+                      showToast('已通知所有成員：活動取消！'); 
+                    } catch(e) { alert('更新失敗'); }
+                  }}>
                     ❌ 場地未借到 (取消)
                   </button>
                 </div>
@@ -535,13 +562,18 @@ function PartyDetail() {
             
             <div style={{ display: 'flex', gap: '12px' }}>
               <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowReportModal(false)}>取消</button>
-              <button className="login-button" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={() => {
+              <button className="login-button" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={async () => {
                 if (reportingUser) {
-                  setReportedUsers([...reportedUsers, reportingUser]);
+                  try {
+                    await reportsApi.submitReport({ game_id: party.id, reported_user_id: reportingUser, reason: reportReason, detail: reportDetail });
+                    setReportedUsers([...reportedUsers, reportingUser]);
+                    showToast('檢舉已送出，管理團隊將會盡快審查。');
+                  } catch (e) {
+                    alert('檢舉失敗');
+                  }
                 }
                 setShowReportModal(false);
                 setReportingUser(null);
-                showToast('檢舉已送出，管理團隊將會盡快審查。');
                 setReportDetail('');
               }}>送出檢舉</button>
             </div>
@@ -616,10 +648,13 @@ function PartyDetail() {
                 <button 
                   className="login-button" 
                   style={{ padding: '0 16px', whiteSpace: 'nowrap', width: 'auto' }}
-                  onClick={() => {
+                  onClick={async () => {
                     if (newAnnouncement.trim()) {
-                      setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
-                      setNewAnnouncement('');
+                      try {
+                        await gamesApi.createAnnouncement(party.id, { text: newAnnouncement });
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
+                        setNewAnnouncement('');
+                      } catch (e) { alert('發佈失敗'); }
                     }
                   }}
                 >

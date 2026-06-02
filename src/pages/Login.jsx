@@ -1,27 +1,38 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import authApi from '../api/auth';
 import '../App.css';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert('請輸入有效的電子郵件格式！');
       return;
     }
-    console.log('Login attempt:', { email, password, role });
-    // TODO: Connect to backend API
-    // 模擬登入成功後跳轉
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/home');
+
+    setIsLoading(true);
+    try {
+      await authApi.login({ email, password });
+      
+      // 登入成功後跳轉
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('登入失敗，請檢查帳號密碼或確認伺服器狀態！');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,8 +92,8 @@ function Login() {
             <a href="#forgot">忘記密碼？</a>
           </div>
           
-          <button type="submit" className="login-button">
-            登入
+          <button type="submit" className="login-button" disabled={isLoading}>
+            {isLoading ? '登入中...' : '登入'}
           </button>
         </form>
 

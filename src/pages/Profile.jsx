@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cake, MapPin, Clock, Phone, Camera, HelpCircle, X } from 'lucide-react';
+import usersApi from '../api/users';
 import '../App.css';
 
 function Profile() {
@@ -9,22 +10,48 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [showLevelHelp, setShowLevelHelp] = useState(false);
   const [userInfo, setUserInfo] = useState({
-    nickname: '運動愛好者',
-    email: 'user@example.com',
-    birthday: '1998-05-20',
-    gender: '男',
-    phone: '0912345678',
-    bio: '喜歡週末到處打球，偶爾打打衛生麻將。',
+    nickname: '',
+    email: '',
+    birthday: '',
+    gender: '',
+    phone: '',
+    bio: '',
     region: '桃園市',
-    levels: {
-      '籃球': 'B',
-      '排球': 'C',
-      '羽球': 'A',
-      '桌球': 'B',
-      '麻將': 'B'
-    },
-    avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Lucky'
+    levels: {},
+    avatar: ''
   });
+  const [reputation, setReputation] = useState({ score: 100, label: '優良玩家，從不爽約！' });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await usersApi.getUserProfile();
+        if (data.user) {
+          setUserInfo({
+            nickname: data.user.name || '',
+            email: data.user.email || '',
+            birthday: data.user.birthday || '',
+            gender: data.user.gender || '',
+            phone: data.user.phone || '',
+            bio: data.user.bio || '',
+            region: '桃園市',
+            levels: data.user.levels || {},
+            avatar: data.user.avatar || ''
+          });
+        }
+        if (data.reputation) {
+          setReputation(data.reputation);
+        }
+      } catch (error) {
+        console.error('Fetch profile error:', error);
+        alert('無法取得個人資料，請確認伺服器狀態！');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   // 預設可愛頭貼清單 (精選 8 款)
   const presetAvatars = [
@@ -38,7 +65,7 @@ function Profile() {
     'https://api.dicebear.com/9.x/adventurer/svg?seed=Willow',
   ];
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     
     // 手機號碼格式驗證
@@ -48,8 +75,22 @@ function Profile() {
       return;
     }
 
-    setIsEditing(false);
-    alert('個人資料已更新！');
+    try {
+      await usersApi.updateUserProfile({
+        name: userInfo.nickname,
+        phone: userInfo.phone,
+        birthday: userInfo.birthday,
+        gender: userInfo.gender,
+        bio: userInfo.bio,
+        avatar: userInfo.avatar,
+        levels: userInfo.levels
+      });
+      setIsEditing(false);
+      alert('個人資料已更新！');
+    } catch (error) {
+      console.error('Update profile error:', error);
+      alert('更新失敗，請稍後再試！');
+    }
   };
 
   const handleAvatarChange = (e) => {
@@ -180,8 +221,8 @@ function Profile() {
                   
                   <div className="reputation-box">
                     <div className="reputation-title">信譽積分</div>
-                    <div className="reputation-score">98<span>/100</span></div>
-                    <p className="reputation-desc">優良玩家，從不爽約！</p>
+                    <div className="reputation-score">{reputation.score}<span>/100</span></div>
+                    <p className="reputation-desc">{reputation.label}</p>
                   </div>
 
                   <button className="btn-outline" style={{ width: '100%', marginTop: '20px' }} onClick={() => setIsEditing(true)}>
