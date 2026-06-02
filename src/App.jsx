@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -6,7 +7,6 @@ import Profile from './pages/Profile';
 import SetupProfile from './pages/SetupProfile';
 import PartyDetail from './pages/PartyDetail';
 import Admin from './pages/Admin';
-import ApiTester from './pages/ApiTester';
 import './App.css';
 
 function App() {
@@ -20,7 +20,6 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/party/:id" element={<PartyDetail />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/api-test" element={<ApiTester />} />
       </Routes>
     </Router>
   );
