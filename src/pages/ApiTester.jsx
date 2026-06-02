@@ -65,6 +65,8 @@ export default function ApiTester() {
           <button onClick={() => handleTest('Create Sys Announce', adminApi.createSystemAnnouncement, { text: 'Hi' })}>POST /admin/announcements</button>
           <button onClick={() => handleTest('Get Sys Announce', adminApi.getSystemAnnouncements)}>GET /announcements</button>
           <button onClick={() => handleTest('Get Analytics', adminApi.getAdminAnalytics)}>GET /admin/analytics</button>
+          <button onClick={() => handleTest('Demo Update Game Status', adminApi.updateDemoGameStatus, 152, { status: '強制進行中' })}>PATCH /admin/demo/games/... (Demo)</button>
+          <button onClick={() => handleTest('Demo Update Weather', adminApi.updateDemoWeather, { weather: '大雨' })}>PATCH /admin/demo/weather (Demo)</button>
         </div>
 
         <div style={{ backgroundColor: '#1e293b', color: '#10b981', padding: '16px', borderRadius: '8px', overflowY: 'auto', maxHeight: '80vh' }}>
