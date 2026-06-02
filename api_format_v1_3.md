@@ -11,22 +11,22 @@
 
 ### 1. 使用者註冊 (Register)
 - **路由路徑：** `POST /api/auth/register`
-- **說明：** 新使用者建立帳號。手機號碼不得與現有帳號重複。
+- **說明：** 新使用者建立帳號。
 
 | 參數 (JSON Body) | 必填 | 格式 | 說明 |
 | :--- | :--- | :--- | :--- |
-| name | 是 | String | 球友姓名或暱稱 |
-| phone | 是 | String | 聯絡電話，格式需為 `09xxxxxxxx` |
-| birthday | 是 | Date | 出生年月日 (YYYY-MM-DD)。**註冊後不得修改** |
-| gender | 是 | String | 性別 ('男' 或 '女') |
+| name | 是 | String | 暱稱 |
+| email | 是 | String | 電子信箱，做為登入帳號 |
+| password | 是 | String | 登入密碼 |
 
 ### 2. 使用者登入 (Login)
 - **路由路徑：** `POST /api/auth/login`
-- **說明：** 既有使用者登入。若系統查無此手機號碼，將回傳錯誤提示要求使用者先去註冊。
+- **說明：** 使用電子信箱與密碼登入。
 
 | 參數 (JSON Body) | 必填 | 格式 | 說明 |
 | :--- | :--- | :--- | :--- |
-| phone | 是 | String | 聯絡電話，格式需為 `09xxxxxxxx` |
+| email | 是 | String | 電子信箱 |
+| password | 是 | String | 登入密碼 |
 
 ### 3. 取得個人資料與信譽積分
 - **路由路徑：** `GET /api/users/profile`
@@ -37,9 +37,13 @@
   "user_id": 1,
   "name": "陳球友",
   "phone": "0912345678",
+  "email": "test@example.com",
   "birthday": "2006-06-25",
   "gender": "男",
   "avatar_url": "https://example.com/avatars/user1.jpg",
+  "line_id": "test_line",
+  "instagram": "test_ig",
+  "bio": "喜歡打什麼位置...",
   "age": 19,
   "credit_point": 100,
   "role": "user",
@@ -53,17 +57,21 @@
 }
 ```
 
-### 4. 更新個人資料
+### 4. 更新/完善個人資料
 - **路由路徑：** `PUT /api/users/profile`
-- **限制：** `birthday` 欄位不接受修改，若傳入將被忽略。
+- **說明：** 用於註冊後的「建立個人檔案」流程，或是後續修改資料。`birthday` 與 `gender` 僅能在首次建立檔案時填寫，後續不可修改。
 
 | 參數 (JSON Body) | 必填 | 說明 |
 | :--- | :--- | :--- |
 | name | 否 | 暱稱修改 |
-| phone | 否 | 需符合 09xxxxxxxx 格式 |
+| phone | 否 | 聯絡電話 (首次完善檔案時為必填) |
+| birthday | 否 | 出生年月日 (首次完善檔案時為必填) |
+| gender | 否 | 性別 (首次完善檔案時為必填) |
 | bio | 否 | 個人簡介 |
-| avatar | 否 | Base64 字串或圖片檔案 (用於上傳頭貼) |
-| levels | 否 | 整體 SABC 程度物件修改 |
+| avatar | 否 | 預設頭貼 ID 或上傳之圖片檔 |
+| levels | 否 | SABC 程度物件 (首次完善檔案時為必填) |
+| line_id | 否 | LINE ID |
+| instagram | 否 | Instagram 帳號 |
 
 ### 5. 能力程度定義 (SABC 系統)
 所有運動項目均須填寫程度，參考標準如下：
