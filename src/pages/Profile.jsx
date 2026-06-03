@@ -210,12 +210,15 @@ function Profile() {
                       <HelpCircle size={16} color="#7995a5" style={{ cursor: 'pointer' }} onClick={() => setShowLevelHelp(true)} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      {Object.entries(userInfo.levels).map(([sport, lv]) => (
-                        <div key={sport} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', backgroundColor: '#f1f5f9', borderRadius: '6px', fontSize: '13px' }}>
-                          <span style={{ color: '#64748b' }}>{sport}</span>
-                          <span style={{ fontWeight: '800', color: getLevelColor(lv) }}>{lv}</span>
-                        </div>
-                      ))}
+                      {['籃球', '排球', '羽球', '桌球', '麻將'].map(sport => {
+                        const lv = userInfo.levels[sport] || 'C';
+                        return (
+                          <div key={sport} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', backgroundColor: '#f1f5f9', borderRadius: '6px', fontSize: '13px' }}>
+                            <span style={{ color: '#64748b' }}>{sport}</span>
+                            <span style={{ fontWeight: '800', color: getLevelColor(lv) }}>{lv}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -263,13 +266,13 @@ function Profile() {
                       <HelpCircle size={16} color="#7995a5" style={{ cursor: 'pointer' }} onClick={() => setShowLevelHelp(true)} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      {Object.keys(userInfo.levels).map(sport => (
+                      {['籃球', '排球', '羽球', '桌球', '麻將'].map(sport => (
                         <div key={sport}>
                           <label style={{ fontSize: '11px', color: '#94a3b8' }}>{sport}</label>
                           <select 
                             className="form-input" 
                             style={{ padding: '6px 10px', fontSize: '13px' }}
-                            value={userInfo.levels[sport]} 
+                            value={userInfo.levels[sport] || 'C'} 
                             onChange={e => handleLevelChange(sport, e.target.value)}
                           >
                             <option value="S">S</option>
