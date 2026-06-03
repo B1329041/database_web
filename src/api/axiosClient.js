@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 建立 Axios 實體
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:3000/api', // 改成後端的完整網址 (請確認後端 Port 是否為 3000)
+  baseURL: 'https://spore-easily-detective.ngrok-free.dev/api', // 改成後端的完整網址 (請確認後端 Port 是否為 3000)
   headers: {
     'Content-Type': 'application/json',
   },
