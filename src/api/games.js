@@ -11,6 +11,15 @@ const gamesApi = {
   },
 
   /**
+   * 取得單一球局詳細資料
+   * @param {number|string} gameId
+   * @returns {Promise}
+   */
+  getGameById: (gameId) => {
+    return axiosClient.get(`/games/${gameId}`);
+  },
+
+  /**
    * 主揪發起球局（開房）
    * @param {Object} data - { sport_id, venue_id, most_players, target_level, booking_date, time_slot, duration, is_free, total_price, gender_limit, description }
    * @returns {Promise}
