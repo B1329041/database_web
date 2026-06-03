@@ -5,6 +5,7 @@ import gamesApi from '../api/games';
 import notificationsApi from '../api/notifications';
 import weatherApi from '../api/weather';
 import adminApi from '../api/admin';
+import usersApi from '../api/users';
 import '../App.css';
 
 function Home() {
@@ -19,6 +20,7 @@ function Home() {
   const [aqi, setAqi] = useState('--');
   const [temperature, setTemperature] = useState('--');
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
 
   // 載入初始資料
   useEffect(() => {
@@ -28,17 +30,34 @@ function Home() {
         const results = await Promise.allSettled([
           gamesApi.getGames(),
           notificationsApi.getNotifications(),
-          weatherApi.getWeatherAqi()
+          weatherApi.getWeatherAqi(),
+          usersApi.getUserProfile()
         ]);
         
         const gamesResult = results[0].status === 'fulfilled' ? results[0].value : [];
         const notificationsResult = results[1].status === 'fulfilled' ? results[1].value : [];
         const weatherResult = results[2].status === 'fulfilled' ? results[2].value : {};
+        const userProfileResult = results[3].status === 'fulfilled' ? results[3].value : null;
         
+        if (userProfileResult) {
+          setUserProfile(userProfileResult);
+        }
+
+        const reverseLevelMap = {
+          'C': '休閒場',
+          'B': '業餘場',
+          'A': '高手場',
+          'S': '高手場',
+          '新手': '休閒場',
+          '休閒': '休閒場',
+          '高手': '高手場'
+        };
+
         // 處理後端 API 欄位命名與前端元件不一致的問題 (snake_case vs camelCase)
         const formattedGames = (Array.isArray(gamesResult) ? gamesResult : gamesResult.results || []).map(party => {
           const rawType = party.type || party.sport_type || party.sport_name || '運動';
-          const rawLevel = party.level || party.target_level || '不限';
+          const originalLevel = party.level || party.target_level || 'C';
+          const rawLevel = reverseLevelMap[originalLevel] || originalLevel;
           
           return {
             ...party,
@@ -140,7 +159,7 @@ function Home() {
   const [newParty, setNewParty] = useState({ 
     title: '', 
     type: '籃球', 
-    level: '不限', 
+    level: '休閒場', 
     genderLimit: '不限',
     city: '桃園市', 
     district: '桃園區', 
@@ -188,6 +207,21 @@ function Home() {
       return;
     }
 
+    // 程度驗證
+    const rankValue = { 'C': 1, 'B': 2, 'A': 3, 'S': 4 };
+    const requiredRank = {
+      '休閒場': 1,
+      '業餘場': 2,
+      '高手場': 3
+    };
+    const userLevels = userProfile?.levels || {};
+    const userLevelInSport = userLevels[newParty.type] || 'C'; // 若未設定則預設為最低 C
+
+    if (rankValue[userLevelInSport] < requiredRank[newParty.level]) {
+      alert(`你的${newParty.type}程度為 ${userLevelInSport}，無法發起${newParty.level}喔！\n(可以向下兼容，但不能向上)`);
+      return;
+    }
+
     const sportMap = {
       '籃球': 1,
       '羽球': 2,
@@ -197,10 +231,9 @@ function Home() {
     };
 
     const levelMap = {
-      '新手': 'C',
-      '休閒': 'B',
-      '高手': 'A',
-      '不限': 'C' 
+      '休閒場': 'C',
+      '業餘場': 'B',
+      '高手場': 'A'
     };
 
     // 場地ID對應，因為 API 只有特定的場地，前端的假資料直接先給 1 當作防呆
@@ -266,7 +299,7 @@ function Home() {
       setParties([formattedNewGame, ...parties]); 
       setIsModalOpen(false);
       setNewParty({ 
-        title: '', type: '籃球', level: '不限', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
+        title: '', type: '籃球', level: '休閒場', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
       });
       alert('發起成功！');
     } catch (error) {
@@ -533,10 +566,9 @@ function Home() {
                   <div className="form-group">
                     <label className="form-label">程度</label>
                     <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
-                      <option value="新手">新手</option>
-                      <option value="休閒">休閒</option>
-                      <option value="高手">高手</option>
-                      <option value="不限">不限</option>
+                      <option value="休閒場">休閒場 (推薦 C, B 參加)</option>
+                      <option value="業餘場">業餘場 (推薦 A, B 參加)</option>
+                      <option value="高手場">高手場 (推薦 A, S 參加)</option>
                     </select>
                   </div>
                   <div className="form-group">
