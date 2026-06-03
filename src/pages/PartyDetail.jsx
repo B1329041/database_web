@@ -88,10 +88,26 @@ function PartyDetail() {
   
   // 新增：佈告欄狀態
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, text: '大家記得帶自己的球具跟水壺喔！', time: '10:00 AM' }
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
   const [newAnnouncement, setNewAnnouncement] = useState('');
+
+  // 當打開佈告欄時，向後端索取真實資料
+  useEffect(() => {
+    if (showAnnouncementModal) {
+      const fetchAnnouncements = async () => {
+        try {
+          const data = await gamesApi.getAnnouncements(party.id);
+          // 假設後端回傳的是陣列
+          setAnnouncements(Array.isArray(data) ? data : []);
+        } catch (error) {
+          console.error('Fetch announcements error:', error);
+          // 若後端 API 尚未實作或報錯，則保持空陣列
+          setAnnouncements([]);
+        }
+      };
+      fetchAnnouncements();
+    }
+  }, [showAnnouncementModal, party.id]);
 
   const getLevelColor = (lv) => {
     switch(lv) {
@@ -295,7 +311,7 @@ function PartyDetail() {
             <div className="detail-section">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><Info size={20} /> 備註與說明</h3>
               <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <p className="detail-desc" style={{ margin: 0, lineHeight: '1.6' }}>{party.description || '大家一起開心打球，友誼第一！記得帶自己的水壺與毛巾。'}</p>
+                <p className="detail-desc" style={{ margin: 0, lineHeight: '1.6', color: party.description ? 'inherit' : '#94a3b8' }}>{party.description || '無特別備註說明'}</p>
               </div>
             </div>
 
