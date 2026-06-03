@@ -571,7 +571,7 @@ function PartyDetail() {
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', display: 'flex', flexDirection: 'column', height: '80vh', maxHeight: '600px' }}>
             <div className="modal-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MessageCircle size={20} color="#0284c7" /> 佈告欄
+                <MessageCircle size={20} color="#0284c7" /> 主揪公告
               </h3>
               <button className="modal-close" onClick={() => setShowAnnouncementModal(false)}>&times;</button>
             </div>
