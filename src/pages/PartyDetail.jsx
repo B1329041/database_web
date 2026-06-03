@@ -311,7 +311,7 @@ function PartyDetail() {
             <div className="detail-section">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><Info size={20} /> 備註與說明</h3>
               <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <p className="detail-desc" style={{ margin: 0, lineHeight: '1.6', color: party.description ? 'inherit' : '#94a3b8' }}>{party.description || '無特別備註說明'}</p>
+                <p className="detail-desc" style={{ margin: 0, lineHeight: '1.6', color: party.description ? 'inherit' : '#94a3b8' }}>{party.description || '大家一起開心打球！'}</p>
               </div>
             </div>
 
