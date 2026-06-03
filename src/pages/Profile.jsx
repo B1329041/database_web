@@ -27,25 +27,27 @@ function Profile() {
     const fetchProfile = async () => {
       try {
         const data = await usersApi.getUserProfile();
-        if (data.user) {
-          setUserInfo({
-            nickname: data.user.name || '',
-            email: data.user.email || '',
-            birthday: data.user.birthday || '',
-            gender: data.user.gender || '',
-            phone: data.user.phone || '',
-            bio: data.user.bio || '',
-            region: '桃園市',
-            levels: data.user.levels || {},
-            avatar: data.user.avatar || ''
+        // 根據 API 規格書，資料是直接放在 data 物件中，而不是 data.user
+        setUserInfo({
+          nickname: data.name || '',
+          email: data.email || '',
+          birthday: data.birthday || '',
+          gender: data.gender || '',
+          phone: data.phone || '',
+          bio: data.bio || '',
+          region: '桃園市',
+          levels: data.levels || {},
+          avatar: data.avatar_url || data.avatar || ''
+        });
+        
+        if (data.credit_point !== undefined) {
+          setReputation({ 
+            score: data.credit_point, 
+            label: data.credit_point >= 80 ? '優良玩家，從不爽約！' : '請注意您的信譽積分' 
           });
-        }
-        if (data.reputation) {
-          setReputation(data.reputation);
         }
       } catch (error) {
         console.error('Fetch profile error:', error);
-        alert('無法取得個人資料，請確認伺服器狀態！');
       } finally {
         setIsLoading(false);
       }
@@ -307,30 +309,8 @@ function Profile() {
               <h2>我的揪團紀錄</h2>
             </div>
             
-            <div className="party-grid">
-              <div className="party-card">
-                <div className="party-card-header">
-                  <span className="party-type">籃球</span>
-                  <span className="party-status" style={{ color: '#10b981' }}>已結束</span>
-                </div>
-                <h3 className="party-title">昨晚的巨蛋熱血籃球</h3>
-                <div className="party-info">
-                  <p style={{ gap: '6px' }}><MapPin size={16} /> 桃園巨蛋室外籃球場</p>
-                  <p style={{ gap: '6px' }}><Clock size={16} /> 昨天 19:00</p>
-                </div>
-              </div>
-
-              <div className="party-card">
-                <div className="party-card-header">
-                  <span className="party-type">麻將</span>
-                  <span className="party-status" style={{ color: '#10b981' }}>已結束</span>
-                </div>
-                <h3 className="party-title">歡樂衛生麻將局</h3>
-                <div className="party-info">
-                  <p style={{ gap: '6px' }}><MapPin size={16} /> 中壢桌遊店</p>
-                  <p style={{ gap: '6px' }}><Clock size={16} /> 上週五 20:00</p>
-                </div>
-              </div>
+            <div className="party-grid" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>目前尚無揪團紀錄</p>
             </div>
           </div>
         </div>
