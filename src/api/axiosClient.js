@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 建立 Axios 實體
 const axiosClient = axios.create({
-  baseURL: '/api', // 所有 API 都會自動加上 /api 前綴
+  baseURL: 'http://localhost:3000/api', // 改成後端的完整網址 (請確認後端 Port 是否為 3000)
   headers: {
     'Content-Type': 'application/json',
   },
