@@ -9,6 +9,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,8 +20,10 @@ function Register() {
       return;
     }
     if (password.length < 6) {
-      alert('為了您的帳號安全，密碼長度請至少包含 6 個字元！');
+      setPasswordError('為了您的帳號安全，密碼長度請至少包含 6 個字元！');
       return;
+    } else {
+      setPasswordError('');
     }
     if (password !== confirmPassword) {
       alert('兩次密碼輸入不一致喔！');
@@ -83,9 +86,13 @@ function Register() {
               className="form-input"
               placeholder="設定密碼"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError('');
+              }}
               required
             />
+            {passwordError && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px' }}>{passwordError}</div>}
           </div>
 
           <div className="form-group">
