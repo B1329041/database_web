@@ -13,8 +13,11 @@ const axiosClient = axios.create({
 // 我們可以在這裡統一處理 Token 或是加入其他設定
 axiosClient.interceptors.request.use(
   (config) => {
-    // 例如：const token = localStorage.getItem('token');
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = localStorage.getItem('token');
+    // Django REST Framework 預設使用 Token 關鍵字而不是 Bearer
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
     return config;
   },
   (error) => {

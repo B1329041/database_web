@@ -20,7 +20,12 @@ function Login() {
 
     setIsLoading(true);
     try {
-      await authApi.login({ email, password });
+      const response = await authApi.login({ email, password });
+      
+      // 儲存 Django 回傳的 token
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+      }
       
       // 登入成功後跳轉
       if (role === 'admin') {

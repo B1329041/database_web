@@ -32,7 +32,13 @@ function Register() {
 
     setIsLoading(true);
     try {
-      await authApi.register({ name: nickname, email, password });
+      const response = await authApi.register({ name: nickname, email, password });
+      
+      // 儲存 Django 回傳的 token
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+      }
+      
       alert('註冊成功！請繼續完成個人檔案設定。');
       navigate('/setup-profile');
     } catch (error) {
