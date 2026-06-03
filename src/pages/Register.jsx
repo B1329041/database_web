@@ -18,6 +18,10 @@ function Register() {
       alert('請輸入有效的電子郵件格式！');
       return;
     }
+    if (password.length < 6) {
+      alert('為了您的帳號安全，密碼長度請至少包含 6 個字元！');
+      return;
+    }
     if (password !== confirmPassword) {
       alert('兩次密碼輸入不一致喔！');
       return;
