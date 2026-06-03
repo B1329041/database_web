@@ -98,7 +98,6 @@
 
 | 回傳 JSON 欄位 | 說明 |
 | :--- | :--- |
-| split_price | **自動計算：** `ceil(total_price / most_players)`。若 `is_free=true` 則為 0 |
 | duration | 預計時長，例如 "2 小時" |
 | description | 揪團說明 / 備註 |
 | facilities | 場地設施陣列（後端根據 `venue_id` 自動帶入） |
@@ -117,7 +116,6 @@
   "booking_date": "2026-05-25",
   "time_slot": "14:00-16:00",
   "duration": "2 小時",
-  "is_free": false,
   "total_price": 1200.00,
   "gender_limit": "不限", 
   "description": "歡迎大家來打球，請自備飲水。"

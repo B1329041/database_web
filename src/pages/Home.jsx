@@ -228,7 +228,6 @@ function Home() {
       booking_date: booking_date,
       time_slot: time_slot,
       duration: newParty.duration,
-      is_free: parseFloat(newParty.price) === 0,
       total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
       description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
