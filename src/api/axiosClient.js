@@ -5,6 +5,7 @@ const axiosClient = axios.create({
   baseURL: 'https://spore-easily-detective.ngrok-free.dev/api', // 改成後端的完整網址 (請確認後端 Port 是否為 3000)
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true', // 繞過 ngrok 的免費警告頁面
   },
   timeout: 10000, // 10秒超時
 });
