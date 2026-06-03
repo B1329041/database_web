@@ -20,7 +20,7 @@ function Register() {
       return;
     }
     if (password.length < 6) {
-      setPasswordError('為了您的帳號安全，密碼長度請至少包含 6 個字元！');
+      setPasswordError('密碼長度請至少包含 6 個字元！');
       return;
     } else {
       setPasswordError('');
