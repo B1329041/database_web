@@ -33,6 +33,10 @@ axiosClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    // 如果遇到 401 未授權 (Invalid token)，代表 Token 過期或無效，將其清除
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+    }
     // 可以集中處理各種錯誤代碼
     console.error('API Error:', error.response || error.message);
     return Promise.reject(error);

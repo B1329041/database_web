@@ -20,6 +20,8 @@ function Login() {
 
     setIsLoading(true);
     try {
+      // 登入前先清空可能殘留的舊 Token
+      localStorage.removeItem('token');
       const response = await authApi.login({ email, password });
       
       // 儲存 Django 回傳的 token
