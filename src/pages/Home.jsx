@@ -16,6 +16,7 @@ function Home() {
   const [reputationScore, setReputationScore] = useState(100);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAqiInfo, setShowAqiInfo] = useState(false);
+  const [showLevelInfo, setShowLevelInfo] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [aqi, setAqi] = useState('--');
   const [temperature, setTemperature] = useState('--');
@@ -44,13 +45,13 @@ function Home() {
         }
 
         const reverseLevelMap = {
-          'C': '休閒場',
-          'B': '業餘場',
-          'A': '高手場',
-          'S': '高手場',
-          '新手': '休閒場',
-          '休閒': '休閒場',
-          '高手': '高手場'
+          'C': '休閒',
+          'B': '業餘',
+          'A': '高手',
+          'S': '高手',
+          '新手': '休閒',
+          '休閒': '休閒',
+          '高手': '高手'
         };
 
         // 處理後端 API 欄位命名與前端元件不一致的問題 (snake_case vs camelCase)
@@ -159,7 +160,7 @@ function Home() {
   const [newParty, setNewParty] = useState({ 
     title: '', 
     type: '籃球', 
-    level: '休閒場', 
+    level: '休閒', 
     genderLimit: '不限',
     city: '桃園市', 
     district: '桃園區', 
@@ -210,9 +211,9 @@ function Home() {
     // 程度驗證
     const rankValue = { 'C': 1, 'B': 2, 'A': 3, 'S': 4 };
     const requiredRank = {
-      '休閒場': 1,
-      '業餘場': 2,
-      '高手場': 3
+      '休閒': 1,
+      '業餘': 2,
+      '高手': 3
     };
     const userLevels = userProfile?.levels || {};
     const userLevelInSport = userLevels[newParty.type] || 'C'; // 若未設定則預設為最低 C
@@ -231,9 +232,9 @@ function Home() {
     };
 
     const levelMap = {
-      '休閒場': 'C',
-      '業餘場': 'B',
-      '高手場': 'A'
+      '休閒': 'C',
+      '業餘': 'B',
+      '高手': 'A'
     };
 
     // 場地ID對應，因為 API 只有特定的場地，前端的假資料直接先給 1 當作防呆
@@ -299,7 +300,7 @@ function Home() {
       setParties([formattedNewGame, ...parties]); 
       setIsModalOpen(false);
       setNewParty({ 
-        title: '', type: '籃球', level: '休閒場', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
+        title: '', type: '籃球', level: '休閒', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
       });
       alert('發起成功！');
     } catch (error) {
@@ -564,11 +565,31 @@ function Home() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">程度</label>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'visible' }}>
+                      程度
+                      <div 
+                        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+                        onMouseEnter={() => setShowLevelInfo(true)}
+                        onMouseLeave={() => setShowLevelInfo(false)}
+                      >
+                        <HelpCircle size={14} style={{ cursor: 'pointer', color: '#94a3b8' }} />
+                        {showLevelInfo && (
+                          <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '8px', width: '240px', backgroundColor: '#1e293b', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'normal', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', lineHeight: '1.5', cursor: 'default' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>各程度推薦參加者</div>
+                            <ul style={{ margin: 0, paddingLeft: '16px', color: '#e2e8f0' }}>
+                              <li style={{ marginBottom: '4px' }}><strong>休閒：</strong> 推薦 C (新手)、B (熟練)</li>
+                              <li style={{ marginBottom: '4px' }}><strong>業餘：</strong> 推薦 A (高手)、B (熟練)</li>
+                              <li><strong>高手：</strong> 推薦 S (菁英)、A (高手)</li>
+                            </ul>
+                            <div style={{ position: 'absolute', bottom: '-4px', left: '50%', transform: 'translateX(-50%)', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
+                          </div>
+                        )}
+                      </div>
+                    </label>
                     <select className="form-input" value={newParty.level} onChange={e => setNewParty({...newParty, level: e.target.value})}>
-                      <option value="休閒場">休閒場 (推薦 C, B 參加)</option>
-                      <option value="業餘場">業餘場 (推薦 A, B 參加)</option>
-                      <option value="高手場">高手場 (推薦 A, S 參加)</option>
+                      <option value="休閒">休閒</option>
+                      <option value="業餘">業餘</option>
+                      <option value="高手">高手</option>
                     </select>
                   </div>
                   <div className="form-group">
