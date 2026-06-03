@@ -184,28 +184,83 @@ function Home() {
       }
     }
 
-    const venueDisplay = newParty.venue === '其他' ? '' : newParty.venue;
-    const fullLocation = `${newParty.city}${newParty.district} ${venueDisplay} ${newParty.note}`.trim();
-    const priceDisplay = newParty.isFree ? '免費' : (newParty.price ? `$${newParty.price} (總額分攤)` : '面議');
+    const sportMap = {
+      '籃球': 1,
+      '羽球': 2,
+      '排球': 3,
+      '桌球': 4,
+      '麻將': 5
+    };
+
+    const levelMap = {
+      '新手': 'C',
+      '休閒': 'B',
+      '高手': 'A',
+      '不限': 'C' 
+    };
+
+    // 場地ID對應，因為 API 只有特定的場地，前端的假資料直接先給 1 當作防呆
+    // 實務上應該由後端提供 GET /venues 給前端做選單
+    const venueMap = {
+      '大安運動中心': 1,
+      '板橋羽球館': 2,
+      '台中陽光球場': 3
+    };
+    const venue_id = venueMap[newParty.venue] || 1;
+
+    // 計算時間
+    const dateObj = new Date(newParty.time);
+    const booking_date = dateObj.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    const startHour = dateObj.getHours().toString().padStart(2, '0');
+    const startMin = dateObj.getMinutes().toString().padStart(2, '0');
     
+    // Parse duration "2 小時" or "1.5 小時"
+    const durationHours = parseFloat(newParty.duration);
+    const endDateObj = new Date(dateObj.getTime() + durationHours * 60 * 60 * 1000);
+    const endHour = endDateObj.getHours().toString().padStart(2, '0');
+    const endMin = endDateObj.getMinutes().toString().padStart(2, '0');
+    
+    const time_slot = `${startHour}:${startMin}-${endHour}:${endMin}`;
+
     const payload = {
-      title: newParty.title,
-      type: newParty.type,
-      level: newParty.level,
-      genderLimit: newParty.genderLimit,
-      time: newParty.time.replace('T', ' '),
+      sport_id: sportMap[newParty.type] || 1,
+      venue_id: venue_id,
+      most_players: parseInt(newParty.maxPlayers, 10),
+      least_players: parseInt(newParty.minPlayers, 10),
+      target_level: levelMap[newParty.level] || 'C',
+      booking_date: booking_date,
+      time_slot: time_slot,
       duration: newParty.duration,
-      location: fullLocation,
-      price: priceDisplay,
-      minPlayers: parseInt(newParty.minPlayers, 10),
-      maxPlayers: parseInt(newParty.maxPlayers, 10),
-      venue: newParty.venue,
+      is_free: newParty.isFree,
+      total_price: newParty.isFree ? 0 : parseFloat(newParty.price),
+      gender_limit: newParty.genderLimit,
       description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
 
     try {
       const newGame = await gamesApi.createGame(payload);
-      setParties([newGame, ...parties]); // 暫時在前端加上去
+      
+      // 為了讓前端能立刻顯示，需要把後端回傳的資料轉成前端需要的格式
+      const rawType = newGame.type || newGame.sport_type || newGame.sport_name || newParty.type;
+      const rawLevel = newGame.level || newGame.target_level || newParty.level;
+      
+      const formattedNewGame = {
+        ...newGame,
+        id: newGame.id || Date.now(),
+        title: newGame.title || newGame.description?.substring(0, 10) || newParty.title || '無標題揪團',
+        type: rawType,
+        level: rawLevel,
+        genderLimit: newGame.genderLimit || newGame.gender_limit || newParty.genderLimit,
+        location: newGame.location || newGame.venue_name || newParty.venue,
+        time: newGame.time || (newGame.booking_date ? `${newGame.booking_date} ${newGame.time_slot || ''}` : newParty.time.replace('T', ' ')),
+        currentPlayers: newGame.currentPlayers ?? newGame.current_players ?? 1,
+        maxPlayers: newGame.maxPlayers ?? newGame.most_players ?? newGame.max_players ?? parseInt(newParty.maxPlayers, 10),
+        currentWaitlist: newGame.currentWaitlist ?? newGame.current_waitlist ?? 0,
+        maxWaitlist: newGame.maxWaitlist ?? newGame.max_waitlist ?? 2,
+        participants: newGame.participants || ['我 (主揪)'],
+      };
+
+      setParties([formattedNewGame, ...parties]); 
       setIsModalOpen(false);
       setNewParty({ 
         title: '', type: '籃球', level: '不限', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', isFree: true, price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
@@ -213,7 +268,7 @@ function Home() {
       alert('發起成功！');
     } catch (error) {
       console.error('Create party error:', error);
-      alert('發起揪團失敗，請確認伺服器狀態。');
+      alert('發起揪團失敗，請確認伺服器狀態或欄位是否填寫正確。');
     }
   };
 
