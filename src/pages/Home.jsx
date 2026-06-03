@@ -31,21 +31,30 @@ function Home() {
         ]);
         
         // 處理後端 API 欄位命名與前端元件不一致的問題 (snake_case vs camelCase)
-        const formattedGames = (Array.isArray(gamesData) ? gamesData : gamesData.results || []).map(party => ({
-          ...party,
-          id: party.id,
-          title: party.title || party.description?.substring(0, 10) || '無標題揪團',
-          type: party.type || party.sport_type || party.sport_name || '運動',
-          level: party.level || party.target_level || '不限',
-          genderLimit: party.genderLimit || party.gender_limit || '不限',
-          location: party.location || party.venue_name || (party.venue_id ? `場地 ID: ${party.venue_id}` : '地點未定'),
-          time: party.time || (party.booking_date ? `${party.booking_date} ${party.time_slot || ''}` : '時間未定'),
-          currentPlayers: party.currentPlayers ?? party.current_players ?? 0,
-          maxPlayers: party.maxPlayers ?? party.most_players ?? party.max_players ?? 6,
-          currentWaitlist: party.currentWaitlist ?? party.current_waitlist ?? 0,
-          maxWaitlist: party.maxWaitlist ?? party.max_waitlist ?? 2,
-          participants: party.participants || [],
-        }));
+        // 同時處理後端傳來英文標籤的問題 (中英翻譯字典)
+        const sportTypeMap = { 'Basketball': '籃球', 'Badminton': '羽球', 'Volleyball': '排球', 'Table Tennis': '桌球', 'Mahjong': '麻將' };
+        const levelMap = { 'beginner': '新手', 'casual': '休閒', 'advanced': '高手', 'pro': '菁英' };
+
+        const formattedGames = (Array.isArray(gamesData) ? gamesData : gamesData.results || []).map(party => {
+          const rawType = party.type || party.sport_type || party.sport_name || '運動';
+          const rawLevel = party.level || party.target_level || '不限';
+          
+          return {
+            ...party,
+            id: party.id,
+            title: party.title || party.description?.substring(0, 10) || '無標題揪團',
+            type: sportTypeMap[rawType] || rawType,
+            level: levelMap[rawLevel] || rawLevel,
+            genderLimit: party.genderLimit || party.gender_limit || '不限',
+            location: party.location || party.venue_name || (party.venue_id ? `場地 ID: ${party.venue_id}` : '地點未定'),
+            time: party.time || (party.booking_date ? `${party.booking_date} ${party.time_slot || ''}` : '時間未定'),
+            currentPlayers: party.currentPlayers ?? party.current_players ?? 0,
+            maxPlayers: party.maxPlayers ?? party.most_players ?? party.max_players ?? 6,
+            currentWaitlist: party.currentWaitlist ?? party.current_waitlist ?? 0,
+            maxWaitlist: party.maxWaitlist ?? party.max_waitlist ?? 2,
+            participants: party.participants || [],
+          };
+        });
         
         setParties(formattedGames);
         setNotifications(notificationsData);
