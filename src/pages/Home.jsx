@@ -16,22 +16,27 @@ function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [aqi, setAqi] = useState(45); // 預設值
+  const [aqi, setAqi] = useState('--');
+  const [temperature, setTemperature] = useState('--');
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   // 載入初始資料
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 並行取得多個 API
-        const [gamesData, notificationsData, weatherData] = await Promise.all([
+        // 並行取得多個 API，使用 allSettled 避免其中一個壞掉導致全掛
+        const results = await Promise.allSettled([
           gamesApi.getGames(),
           notificationsApi.getNotifications(),
           weatherApi.getWeatherAqi()
         ]);
         
+        const gamesResult = results[0].status === 'fulfilled' ? results[0].value : [];
+        const notificationsResult = results[1].status === 'fulfilled' ? results[1].value : [];
+        const weatherResult = results[2].status === 'fulfilled' ? results[2].value : {};
+        
         // 處理後端 API 欄位命名與前端元件不一致的問題 (snake_case vs camelCase)
-        const formattedGames = (Array.isArray(gamesData) ? gamesData : gamesData.results || []).map(party => {
+        const formattedGames = (Array.isArray(gamesResult) ? gamesResult : gamesResult.results || []).map(party => {
           const rawType = party.type || party.sport_type || party.sport_name || '運動';
           const rawLevel = party.level || party.target_level || '不限';
           
@@ -53,11 +58,11 @@ function Home() {
         });
         
         setParties(formattedGames);
-        setNotifications(notificationsData);
-        setAqi(weatherData.aqi || 45);
+        setNotifications(Array.isArray(notificationsResult) ? notificationsResult : []);
+        setAqi(weatherResult?.aqi || '--');
+        setTemperature(weatherResult?.temperature || '--');
       } catch (error) {
         console.error('Home fetchData error:', error);
-        alert('讀取失敗，請確認後端伺服器狀態');
       } finally {
         setIsPageLoading(false);
       }
@@ -304,7 +309,7 @@ function Home() {
             <h2 style={{ marginBottom: 0 }}>揪團大廳</h2>
             <div className="weather-widget">
               <span className="weather-icon" style={{ display: 'flex' }}><CloudSun size={18} /></span>
-              <span>桃園市 26°C</span>
+              <span>桃園市 {temperature === '--' ? '--' : `${temperature}°C`}</span>
               <div 
                 style={{ position: 'relative', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#64748b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
                 onMouseEnter={() => setShowAqiInfo(true)}
