@@ -59,8 +59,9 @@ function Home() {
         
         setParties(formattedGames);
         setNotifications(Array.isArray(notificationsResult) ? notificationsResult : []);
-        setAqi(weatherResult?.aqi || '--');
-        setTemperature(weatherResult?.temperature || '--');
+        // 強制忽略後端資料，直接顯示 '--'，直到後端真實串接氣象局 API
+        setAqi('--');
+        setTemperature('--');
       } catch (error) {
         console.error('Home fetchData error:', error);
       } finally {
