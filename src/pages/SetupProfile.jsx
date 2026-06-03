@@ -144,9 +144,10 @@ function SetupProfile() {
               <input
                 id="birthday"
                 type="date"
-                className="form-input"
+                className="form-input custom-date-input"
                 value={birthday}
                 onChange={(e) => setBirthday(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
                 required
               />
             </div>

@@ -174,7 +174,14 @@ function Home() {
   const handleCreateParty = async (e) => {
     e.preventDefault();
 
-    // 費用驗證
+    // 時間驗證
+    const selectedTime = new Date(newParty.time);
+    const now = new Date();
+    if (selectedTime < now) {
+      alert('活動時間不能設定在過去喔！');
+      return;
+    }
+
     const priceNum = parseFloat(newParty.price);
     if (isNaN(priceNum) || priceNum < 0 || priceNum > 10000) {
       alert('費用金額必須在 0 到 10,000 之間喔！');
@@ -542,7 +549,14 @@ function Home() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">活動時間</label>
-                    <input type="datetime-local" className="form-input" value={newParty.time} onChange={e => setNewParty({...newParty, time: e.target.value})} required />
+                    <input 
+                      type="datetime-local" 
+                      className="form-input custom-date-input" 
+                      value={newParty.time} 
+                      onChange={e => setNewParty({...newParty, time: e.target.value})} 
+                      min={new Date().toISOString().slice(0, 16)}
+                      required 
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">預計時長</label>

@@ -813,3 +813,27 @@
   from { opacity: 0; transform: translate(-50%, -20px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* Date Input Styling */
+.custom-date-input {
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+
+.custom-date-input::-webkit-datetime-edit {
+  padding-right: 24px;
+}
+
