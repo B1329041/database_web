@@ -574,14 +574,14 @@ function Home() {
                       >
                         <HelpCircle size={14} style={{ cursor: 'pointer', color: '#94a3b8' }} />
                         {showLevelInfo && (
-                          <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '8px', width: '240px', backgroundColor: '#1e293b', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'normal', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', lineHeight: '1.5', cursor: 'default' }}>
+                          <div style={{ position: 'absolute', bottom: '100%', left: '-8px', marginBottom: '8px', width: '240px', backgroundColor: '#1e293b', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'normal', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', lineHeight: '1.5', cursor: 'default' }}>
                             <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>各程度推薦參加者</div>
                             <ul style={{ margin: 0, paddingLeft: '16px', color: '#e2e8f0' }}>
                               <li style={{ marginBottom: '4px' }}><strong>休閒：</strong> 推薦 C (新手)、B (熟練)</li>
                               <li style={{ marginBottom: '4px' }}><strong>業餘：</strong> 推薦 A (高手)、B (熟練)</li>
                               <li><strong>高手：</strong> 推薦 S (菁英)、A (高手)</li>
                             </ul>
-                            <div style={{ position: 'absolute', bottom: '-4px', left: '50%', transform: 'translateX(-50%)', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
+                            <div style={{ position: 'absolute', bottom: '-4px', left: '11px', width: '8px', height: '8px', backgroundColor: '#1e293b', borderRadius: '2px', rotate: '45deg' }}></div>
                           </div>
                         )}
                       </div>
