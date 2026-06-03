@@ -228,6 +228,7 @@ function Home() {
       booking_date: booking_date,
       time_slot: time_slot,
       duration: newParty.duration,
+      is_free: parseFloat(newParty.price) === 0,
       total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
       description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
@@ -588,6 +589,20 @@ function Home() {
                     <label className="form-label">詳細地點說明 (選填)</label>
                     <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
                   </div>
+                  <div className="form-group">
+                    <label className="form-label">總額費用</label>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      placeholder="輸入場地總額 (若為免費請輸入 0)" 
+                      value={newParty.price} 
+                      onChange={e => setNewParty({...newParty, price: e.target.value})}
+                      min="0"
+                      max="10000"
+                      required
+                    />
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>* 系統將會依據人數自動為您計算分攤金額</div>
+                  </div>
                 </div>
               </div>
 
@@ -602,20 +617,6 @@ function Home() {
                     <span style={{ color: '#64748b' }}>~</span>
                     <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
                   </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">總額費用</label>
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    placeholder="輸入場地總額 (若為免費請輸入 0)" 
-                    value={newParty.price} 
-                    onChange={e => setNewParty({...newParty, price: e.target.value})}
-                    min="0"
-                    max="10000"
-                    required
-                  />
-                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>* 系統將會依據人數自動為您計算分攤金額</div>
                 </div>
               </div>
 
