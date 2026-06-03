@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye, Bell, MessageCircle } from 'lucide-react';
 import gamesApi from '../api/games';
