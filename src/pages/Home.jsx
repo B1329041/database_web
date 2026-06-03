@@ -27,7 +27,7 @@ function Home() {
         const [gamesData, notificationsData, weatherData] = await Promise.all([
           gamesApi.getGames(),
           notificationsApi.getNotifications(),
-          weatherApi.getAqi()
+          weatherApi.getWeatherAqi()
         ]);
         
         setParties(gamesData);
