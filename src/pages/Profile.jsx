@@ -15,6 +15,8 @@ function Profile() {
     birthday: '',
     gender: '',
     phone: '',
+    line: '',
+    ig: '',
     bio: '',
     region: '桃園市',
     levels: {},
@@ -34,6 +36,8 @@ function Profile() {
           birthday: data.birthday || '',
           gender: data.gender || '',
           phone: data.phone || '',
+          line: data.line_id || data.line || '',
+          ig: data.instagram || data.ig || '',
           bio: data.bio || '',
           region: '桃園市',
           levels: data.levels || {},
@@ -81,6 +85,8 @@ function Profile() {
       await usersApi.updateUserProfile({
         name: userInfo.nickname,
         phone: userInfo.phone,
+        line_id: userInfo.line,
+        instagram: userInfo.ig,
         birthday: userInfo.birthday,
         gender: userInfo.gender,
         bio: userInfo.bio,
@@ -199,6 +205,16 @@ function Profile() {
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Phone size={16} /> {userInfo.phone}
                     </p>
+                    {userInfo.line && (
+                      <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: 'bold' }}>LINE:</span> {userInfo.line}
+                      </p>
+                    )}
+                    {userInfo.ig && (
+                      <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: 'bold' }}>IG:</span> {userInfo.ig}
+                      </p>
+                    )}
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <MapPin size={16} /> {userInfo.region}
                     </p>
@@ -258,6 +274,16 @@ function Profile() {
                   <div className="form-group">
                     <label className="form-label">聯絡電話</label>
                     <input type="tel" className="form-input" placeholder="09xxxxxxxx" value={userInfo.phone} onChange={e => setUserInfo({...userInfo, phone: e.target.value})} required />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="form-group">
+                      <label className="form-label">LINE ID (選填)</label>
+                      <input type="text" className="form-input" placeholder="輸入 LINE ID" value={userInfo.line} onChange={e => setUserInfo({...userInfo, line: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Instagram (選填)</label>
+                      <input type="text" className="form-input" placeholder="@username" value={userInfo.ig} onChange={e => setUserInfo({...userInfo, ig: e.target.value})} />
+                    </div>
                   </div>
                   
                   <div style={{ marginBottom: '20px' }}>
