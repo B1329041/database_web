@@ -147,7 +147,6 @@ function Home() {
     venue: '桃園國民運動中心',
     note: '', 
     description: '',
-    isFree: true,
     price: '',
     time: '', 
     duration: '2 小時',
@@ -176,12 +175,10 @@ function Home() {
     e.preventDefault();
 
     // 費用驗證
-    if (!newParty.isFree) {
-      const priceNum = parseFloat(newParty.price);
-      if (priceNum < 0 || priceNum > 10000) {
-        alert('費用金額必須在 0 到 10,000 之間喔！');
-        return;
-      }
+    const priceNum = parseFloat(newParty.price);
+    if (isNaN(priceNum) || priceNum < 0 || priceNum > 10000) {
+      alert('費用金額必須在 0 到 10,000 之間喔！');
+      return;
     }
 
     const sportMap = {
@@ -231,8 +228,7 @@ function Home() {
       booking_date: booking_date,
       time_slot: time_slot,
       duration: newParty.duration,
-      is_free: newParty.isFree,
-      total_price: newParty.isFree ? 0 : parseFloat(newParty.price),
+      total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
       description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
@@ -263,7 +259,7 @@ function Home() {
       setParties([formattedNewGame, ...parties]); 
       setIsModalOpen(false);
       setNewParty({ 
-        title: '', type: '籃球', level: '不限', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', isFree: true, price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
+        title: '', type: '籃球', level: '不限', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
       });
       alert('發起成功！');
     } catch (error) {
@@ -608,37 +604,18 @@ function Home() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">入場費 / 費用</label>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                    <button 
-                      type="button" 
-                      className={`role-btn ${newParty.isFree ? 'active' : ''}`} 
-                      style={{ border: '1px solid #e2e8f0', flex: 1 }}
-                      onClick={() => setNewParty({...newParty, isFree: true})}
-                    >
-                      免費
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`role-btn ${!newParty.isFree ? 'active' : ''}`} 
-                      style={{ border: '1px solid #e2e8f0', flex: 1 }}
-                      onClick={() => setNewParty({...newParty, isFree: false})}
-                    >
-                      付費 / 均分
-                    </button>
-                  </div>
-                  {!newParty.isFree && (
-                    <input 
-                      type="number" 
-                      className="form-input" 
-                      placeholder="輸入總額(自動平分)" 
-                      value={newParty.price} 
-                      onChange={e => setNewParty({...newParty, price: e.target.value})}
-                      min="0"
-                      max="10000"
-                      required
-                    />
-                  )}
+                  <label className="form-label">總額費用</label>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    placeholder="輸入場地總額 (若為免費請輸入 0)" 
+                    value={newParty.price} 
+                    onChange={e => setNewParty({...newParty, price: e.target.value})}
+                    min="0"
+                    max="10000"
+                    required
+                  />
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>* 系統將會依據人數自動為您計算分攤金額</div>
                 </div>
               </div>
 
