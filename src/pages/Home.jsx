@@ -63,7 +63,7 @@ function Home() {
           return {
             ...party,
             id: party.id,
-            title: party.title || party.description?.substring(0, 10) || '無標題揪團',
+            title: party.game_name || party.title || party.description?.substring(0, 10) || '無標題揪團',
             type: rawType,
             level: rawLevel,
             genderLimit: party.genderLimit || party.gender_limit || '不限',
@@ -73,6 +73,7 @@ function Home() {
             maxPlayers: party.maxPlayers ?? party.most_players ?? party.max_players ?? 6,
             currentWaitlist: party.currentWaitlist ?? party.current_waitlist ?? 0,
             maxWaitlist: party.maxWaitlist ?? party.max_waitlist ?? 2,
+            description: party.game_note || party.description,
             participants: party.participants || [],
           };
         });
@@ -267,11 +268,13 @@ function Home() {
       least_players: parseInt(newParty.minPlayers, 10),
       target_level: levelMap[newParty.level] || 'C',
       booking_date: booking_date,
+      start_time: `${startHour}:${startMin}`,
       time_slot: time_slot,
       duration: newParty.duration,
       total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
-      description: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
+      game_name: newParty.title,
+      game_note: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
 
     try {
@@ -305,7 +308,8 @@ function Home() {
       alert('發起成功！');
     } catch (error) {
       console.error('Create party error:', error);
-      alert('發起揪團失敗，請確認伺服器狀態或欄位是否填寫正確。');
+      const backendError = error.response?.data ? JSON.stringify(error.response.data) : '伺服器未回應';
+      alert(`發起揪團失敗：${backendError}`);
     }
   };
 
@@ -515,7 +519,7 @@ function Home() {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
                   }}>
-                    {party.participants[0] === '我 (主揪)' || party.participants[0] === '主揪人' ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                    {(party.participants[0] && party.participants[0].id === parseInt(localStorage.getItem('user_id'))) || party.participants[0] === '我 (主揪)' || party.participants[0] === '主揪人' ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                   </button>
                 </div>
               </div>

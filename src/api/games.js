@@ -73,6 +73,15 @@ const gamesApi = {
    */
   createAnnouncement: (gameId, data) => {
     return axiosClient.post(`/games/${gameId}/announcements`, data);
+  },
+
+  /**
+   * 主揪取消(刪除)球局
+   * @param {number|string} gameId 
+   * @returns {Promise}
+   */
+  deleteGame: (gameId) => {
+    return axiosClient.delete(`/games/${gameId}`);
   }
 };
 

@@ -60,10 +60,11 @@ function PartyDetail() {
   const [party, setParty] = useState(initialParty);
   
   // 判斷當前使用者是否為主揪或已加入
-  const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || initialParty.participants?.[0]?.name === '主揪人';
+  const currentUserId = parseInt(localStorage.getItem('user_id'));
+  const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || initialParty.participants?.[0]?.name === '主揪人' || (initialParty.participants?.[0]?.id === currentUserId);
   const initialHasJoined = isUserHost || 
-                           initialParty.participants?.some(p => p.name === '我 (使用者)') || 
-                           initialParty.waitlist?.some(p => p.name === '我 (使用者)');
+                           initialParty.participants?.some(p => p.name === '我 (使用者)' || p.id === currentUserId) || 
+                           initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
 
   const [hasJoined, setHasJoined] = useState(initialHasJoined);
   const [joinType, setJoinType] = useState(null);
@@ -194,6 +195,19 @@ function PartyDetail() {
     } catch (error) {
       console.error('Cancel error:', error);
       alert('取消失敗，請確認伺服器狀態！');
+    }
+  };
+
+  const handleDeleteGame = async () => {
+    if (window.confirm('確定要取消這個球局嗎？此操作無法還原。')) {
+      try {
+        await gamesApi.deleteGame(party.id);
+        alert('球局已成功取消並刪除！');
+        navigate('/home');
+      } catch (error) {
+        console.error('Delete game error:', error);
+        alert('刪除球局失敗，請確認伺服器狀態。');
+      }
     }
   };
 
@@ -335,7 +349,7 @@ function PartyDetail() {
             )}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {isHostView ? (
-                <button className="btn-action cancel" style={{ width: '100%' }} onClick={() => { alert('球局已取消！'); navigate('/home'); }}>
+                <button className="btn-action cancel" style={{ width: '100%' }} onClick={handleDeleteGame}>
                   取消揪團
                 </button>
               ) : hasJoined ? (
