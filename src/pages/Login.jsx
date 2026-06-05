@@ -28,6 +28,9 @@ function Login() {
       if (response && response.token) {
         localStorage.setItem('token', response.token);
       }
+      if (response && response.user_id) {
+        localStorage.setItem('user_id', response.user_id);
+      }
       
       // 登入成功後跳轉
       if (role === 'admin') {
@@ -95,9 +98,7 @@ function Login() {
             />
           </div>
 
-          <div className="forgot-password">
-            <a href="#forgot">忘記密碼？</a>
-          </div>
+
           
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? '登入中...' : '登入'}

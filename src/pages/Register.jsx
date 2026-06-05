@@ -40,6 +40,9 @@ function Register() {
       if (response && response.token) {
         localStorage.setItem('token', response.token);
       }
+      if (response && response.user_id) {
+        localStorage.setItem('user_id', response.user_id);
+      }
       
       alert('註冊成功！請繼續完成個人檔案設定。');
       navigate('/setup-profile');
