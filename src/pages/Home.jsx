@@ -74,6 +74,7 @@ function Home() {
             currentWaitlist: party.currentWaitlist ?? party.current_waitlist ?? 0,
             maxWaitlist: party.maxWaitlist ?? party.max_waitlist ?? 2,
             description: party.game_note || party.description,
+            venue_note: party.venue_note,
             participants: party.participants || [],
           };
         });
@@ -274,7 +275,8 @@ function Home() {
       total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
       game_name: newParty.title,
-      game_note: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
+      game_note: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！',
+      venue_note: newParty.note
     };
 
     try {
@@ -292,6 +294,7 @@ function Home() {
         level: rawLevel,
         genderLimit: newGame.genderLimit || newGame.gender_limit || newParty.genderLimit,
         location: newGame.location || newGame.venue_name || newParty.venue,
+        venue_note: newGame.venue_note || newParty.note,
         time: newGame.time || (newGame.booking_date ? `${newGame.booking_date} ${newGame.time_slot || ''}` : newParty.time.replace('T', ' ')),
         currentPlayers: newGame.currentPlayers ?? newGame.current_players ?? 1,
         maxPlayers: newGame.maxPlayers ?? newGame.most_players ?? newGame.max_players ?? parseInt(newParty.maxPlayers, 10),
@@ -510,7 +513,7 @@ function Home() {
                 </div>
                 <h3 className="party-title">{party.title}</h3>
                 <div className="party-info">
-                  <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}</p>
+                  <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}{party.venue_note ? ` (${party.venue_note})` : ''}</p>
                   <p style={{ gap: '6px' }}><Clock size={16} /> {party.time}</p>
                 </div>
                 <div className="party-card-footer">

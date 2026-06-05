@@ -300,7 +300,10 @@ function PartyDetail() {
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <MapPin size={20} color="#7995a5" />
                 <span style={{ color: '#64748b', fontWeight: '600' }}>地點：</span>
-                <span style={{ fontWeight: '800' }}>{party.location}</span>
+                <span style={{ fontWeight: '800' }}>
+                  {party.location}
+                  {party.venue_note && <span style={{ marginLeft: '6px', color: '#64748b', fontSize: '14px', fontWeight: 'normal' }}>({party.venue_note})</span>}
+                </span>
               </div>
 
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
