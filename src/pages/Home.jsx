@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudSun, MapPin, Clock, Bell, HelpCircle } from 'lucide-react';
+import { CloudSun, MapPin, Clock, Bell, HelpCircle, Star } from 'lucide-react';
 import gamesApi from '../api/games';
 import notificationsApi from '../api/notifications';
 import weatherApi from '../api/weather';
@@ -485,11 +485,22 @@ function Home() {
           {parties
             .filter(party => selectedFilterRegion === 'all' || party.location.includes(selectedFilterRegion))
             .filter(party => selectedCategory === '全部' || party.type === selectedCategory)
+            .sort((a, b) => {
+              const currentUserId = parseInt(localStorage.getItem('user_id'));
+              const isAHost = (a.participants?.[0]?.id === currentUserId) || a.participants?.[0] === '我 (主揪)' || a.participants?.[0] === '主揪人';
+              const isBHost = (b.participants?.[0]?.id === currentUserId) || b.participants?.[0] === '我 (主揪)' || b.participants?.[0] === '主揪人';
+              if (isAHost && !isBHost) return -1;
+              if (!isAHost && isBHost) return 1;
+              return 0;
+            })
             .map(party => {
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
             let statusText = `缺 ${party.maxPlayers - party.currentPlayers} 人`;
             let statusColor = '#ef4444'; // Red
+
+            const currentUserId = parseInt(localStorage.getItem('user_id'));
+            const isHost = (party.participants?.[0]?.id === currentUserId) || party.participants?.[0] === '我 (主揪)' || party.participants?.[0] === '主揪人';
 
             if (isFull && isWaitlistFull) {
               statusText = '已完全額滿';
@@ -500,9 +511,12 @@ function Home() {
             }
 
             return (
-              <div key={party.id} className="party-card clickable-card" onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
+              <div key={party.id} className={`party-card clickable-card ${isHost ? 'hosted-party' : ''}`} onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
                 <div className="party-card-header">
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {isHost && (
+                      <Star size={20} fill="#d8a7a7" color="#d8a7a7" style={{ marginRight: '4px' }} />
+                    )}
                     <span className="party-type">{party.type}</span>
                     <span className="party-level">{party.level}</span>
                     {party.genderLimit && party.genderLimit !== '不限' && (
