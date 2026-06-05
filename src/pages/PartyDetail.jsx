@@ -126,9 +126,9 @@ function PartyDetail() {
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const confirmJoin = async () => {
+  const confirmJoin = async (force = false) => {
     try {
-      await gamesApi.joinGame(party.id);
+      const response = await gamesApi.joinGame(party.id, force ? { force: true } : {});
       
       const newMember = { 
         name: '我 (使用者)', 
@@ -137,7 +137,10 @@ function PartyDetail() {
         age: 20,
         level: 'A'
       };
-      if (party.currentPlayers < party.maxPlayers) {
+      
+      const isWaitlist = response && response.status === 'waitlist';
+      
+      if (!isWaitlist) {
         setParty(prev => ({
           ...prev,
           currentPlayers: prev.currentPlayers + 1,
@@ -146,7 +149,8 @@ function PartyDetail() {
         setJoinType('normal');
         setHasJoined(true);
         showToast('報名成功！你已在正取名單中。');
-      } else if (party.currentWaitlist < party.maxWaitlist) {
+      } else {
+        const pos = response.position || (party.currentWaitlist + 1);
         setParty(prev => ({
           ...prev,
           currentWaitlist: prev.currentWaitlist + 1,
@@ -154,24 +158,22 @@ function PartyDetail() {
         }));
         setJoinType('waitlist');
         setHasJoined(true);
-        showToast('已進入候補名單！有人退出時系統會依序遞補。');
+        showToast(`已進入候補名單！目前順位為第 ${pos} 位。`);
       }
     } catch (error) {
       console.error('Join error:', error);
-      alert('報名失敗，請稍後再試！');
+      const errorData = error.response?.data;
+      if (errorData && errorData.error_code === 'LEVEL_MISMATCH') {
+        setShowLevelWarningModal(true);
+      } else {
+        const errorMsg = errorData?.detail || '報名失敗，請稍後再試！';
+        alert(errorMsg);
+      }
     }
   };
 
   const handleJoin = () => {
-    const mockUserLevel = 'A'; // 假設使用者等級為 A
-    const partyLevel = party.level || '休閒';
-    
-    // 檢查等級是否匹配 (如果不限或休閒則略過，這裡簡單判斷如果不同就跳警告)
-    if (partyLevel !== '休閒' && partyLevel !== '不限' && partyLevel !== mockUserLevel) {
-      setShowLevelWarningModal(true);
-    } else {
-      confirmJoin();
-    }
+    confirmJoin(false);
   };
 
   const handleCancel = async () => {
@@ -478,14 +480,13 @@ function PartyDetail() {
             </div>
             <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>等級不符</h3>
             <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>
-              這個揪團設定的等級是「{party.level}」，但你目前的等級為「A」。<br/><br/>
-              與目前level不符，確定要加入？
+              此房間是{party.level || '未知'}等級，與您等級不符。
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowLevelWarningModal(false)}>取消</button>
               <button className="btn-primary" style={{ flex: 1, backgroundColor: '#f59e0b', border: 'none' }} onClick={() => {
                 setShowLevelWarningModal(false);
-                confirmJoin();
+                confirmJoin(true);
               }}>確定加入</button>
             </div>
           </div>

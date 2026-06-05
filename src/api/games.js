@@ -33,8 +33,8 @@ const gamesApi = {
    * @param {number|string} gameId 
    * @returns {Promise}
    */
-  joinGame: (gameId) => {
-    return axiosClient.post(`/games/${gameId}/join`);
+  joinGame: (gameId, data) => {
+    return axiosClient.post(`/games/${gameId}/join/`, data);
   },
 
   /**
