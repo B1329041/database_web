@@ -7,7 +7,7 @@ const authApi = {
    * @returns {Promise}
    */
   register: (data) => {
-    return axiosClient.post('/auth/register', data);
+    return axiosClient.post('auth/register/', data);
   },
 
   /**
@@ -16,8 +16,9 @@ const authApi = {
    * @returns {Promise}
    */
   login: (data) => {
-    return axiosClient.post('/auth/login', data);
+    return axiosClient.post('auth/login/', data);
   }
 };
 
 export default authApi;
+
