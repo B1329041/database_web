@@ -76,6 +76,7 @@ function Home() {
             description: party.game_note || party.description,
             venue_note: party.venue_note,
             participants: party.participants || [],
+            creator_id: party.creator_id,
           };
         });
         
@@ -487,18 +488,21 @@ function Home() {
             .filter(party => selectedCategory === '全部' || party.type === selectedCategory)
             .sort((a, b) => {
               const currentUserId = localStorage.getItem('user_id');
-              if (!currentUserId) return 0;
-              
-              const isAHost = (a.participants?.[0]?.id && String(a.participants[0].id) === String(currentUserId)) || 
-                              a.participants?.[0] === '我 (主揪)' || 
-                              a.participants?.[0] === '主揪人' ||
-                              (a.user_id && String(a.user_id) === String(currentUserId));
-                              
-              const isBHost = (b.participants?.[0]?.id && String(b.participants[0].id) === String(currentUserId)) || 
-                              b.participants?.[0] === '我 (主揪)' || 
-                              b.participants?.[0] === '主揪人' ||
-                              (b.user_id && String(b.user_id) === String(currentUserId));
-                              
+              const isAHost = currentUserId && (
+                (a.creator_id && String(a.creator_id) === String(currentUserId)) || 
+                (a.participants?.[0]?.id && String(a.participants[0].id) === String(currentUserId)) || 
+                a.participants?.[0] === '我 (主揪)' || 
+                a.participants?.[0] === '主揪人' ||
+                (a.user_id && String(a.user_id) === String(currentUserId))
+              );
+              const isBHost = currentUserId && (
+                (b.creator_id && String(b.creator_id) === String(currentUserId)) || 
+                (b.participants?.[0]?.id && String(b.participants[0].id) === String(currentUserId)) || 
+                b.participants?.[0] === '我 (主揪)' || 
+                b.participants?.[0] === '主揪人' ||
+                (b.user_id && String(b.user_id) === String(currentUserId))
+              );
+
               if (isAHost && !isBHost) return -1;
               if (!isAHost && isBHost) return 1;
               return 0;
@@ -511,6 +515,7 @@ function Home() {
 
             const currentUserId = localStorage.getItem('user_id');
             const isHost = currentUserId && (
+              (party.creator_id && String(party.creator_id) === String(currentUserId)) || 
               (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
               party.participants?.[0] === '我 (主揪)' || 
               party.participants?.[0] === '主揪人' ||
