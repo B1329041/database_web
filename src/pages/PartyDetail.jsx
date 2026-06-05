@@ -87,8 +87,9 @@ function PartyDetail() {
   const [reportedUsers, setReportedUsers] = useState([]); // 新增：紀錄已檢舉的用戶名
   const [showLevelWarningModal, setShowLevelWarningModal] = useState(false); // 等級不符警告
   
-  // 新增：佈告欄狀態
+  // 新增：佈告欄與取消確認狀態
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [newAnnouncement, setNewAnnouncement] = useState('');
 
@@ -198,16 +199,19 @@ function PartyDetail() {
     }
   };
 
-  const handleDeleteGame = async () => {
-    if (window.confirm('確定要取消這個球局嗎？此操作無法還原。')) {
-      try {
-        await gamesApi.deleteGame(party.id);
-        alert('球局已成功取消並刪除！');
-        navigate('/home');
-      } catch (error) {
-        console.error('Delete game error:', error);
-        alert('刪除球局失敗，請確認伺服器狀態。');
-      }
+  const handleDeleteGame = () => {
+    setShowCancelConfirmModal(true);
+  };
+
+  const confirmDeleteGame = async () => {
+    try {
+      await gamesApi.deleteGame(party.id);
+      alert('球局已成功取消並刪除！');
+      setShowCancelConfirmModal(false);
+      navigate('/home');
+    } catch (error) {
+      console.error('Delete game error:', error);
+      alert('刪除球局失敗，請確認伺服器狀態。');
     }
   };
 
@@ -480,6 +484,23 @@ function PartyDetail() {
                 setShowLevelWarningModal(false);
                 confirmJoin();
               }}>確定加入</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 取消揪團確認 Modal */}
+      {showCancelConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowCancelConfirmModal(false)} style={{ zIndex: 1200 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <h3 style={{ marginBottom: '12px', color: '#1e293b' }}>確定要取消揪團嗎？</h3>
+            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>
+              此操作將會刪除這個球局，且無法還原。<br/>請確定是否要繼續？
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-outline" style={{ flex: 1, padding: '16px', fontSize: '18px', fontWeight: '800', borderRadius: '12px' }} onClick={() => setShowCancelConfirmModal(false)}>再想一下</button>
+              <button className="btn-action cancel" style={{ flex: 1, backgroundColor: '#ef4444' }} onClick={confirmDeleteGame}>確定取消</button>
             </div>
           </div>
         </div>

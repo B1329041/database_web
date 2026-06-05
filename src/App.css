@@ -265,6 +265,8 @@
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
 .party-card:hover {
@@ -836,4 +838,17 @@
 .custom-date-input::-webkit-datetime-edit {
   padding-right: 24px;
 }
+
+/* --- Hosted Party Styles --- */
+.party-card.hosted-party {
+  background-color: #f7ecec; /* 莫蘭迪淺粉 */
+  border-color: #e5cdcd; /* 莫蘭迪深粉邊框 */
+  box-shadow: 0 4px 15px rgba(229, 205, 205, 0.4);
+}
+
+.party-card.hosted-party:hover {
+  box-shadow: 0 10px 25px rgba(229, 205, 205, 0.6);
+}
+
+
 
