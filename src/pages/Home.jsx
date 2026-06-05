@@ -486,9 +486,19 @@ function Home() {
             .filter(party => selectedFilterRegion === 'all' || party.location.includes(selectedFilterRegion))
             .filter(party => selectedCategory === '全部' || party.type === selectedCategory)
             .sort((a, b) => {
-              const currentUserId = parseInt(localStorage.getItem('user_id'));
-              const isAHost = (a.participants?.[0]?.id === currentUserId) || a.participants?.[0] === '我 (主揪)' || a.participants?.[0] === '主揪人';
-              const isBHost = (b.participants?.[0]?.id === currentUserId) || b.participants?.[0] === '我 (主揪)' || b.participants?.[0] === '主揪人';
+              const currentUserId = localStorage.getItem('user_id');
+              if (!currentUserId) return 0;
+              
+              const isAHost = (a.participants?.[0]?.id && String(a.participants[0].id) === String(currentUserId)) || 
+                              a.participants?.[0] === '我 (主揪)' || 
+                              a.participants?.[0] === '主揪人' ||
+                              (a.user_id && String(a.user_id) === String(currentUserId));
+                              
+              const isBHost = (b.participants?.[0]?.id && String(b.participants[0].id) === String(currentUserId)) || 
+                              b.participants?.[0] === '我 (主揪)' || 
+                              b.participants?.[0] === '主揪人' ||
+                              (b.user_id && String(b.user_id) === String(currentUserId));
+                              
               if (isAHost && !isBHost) return -1;
               if (!isAHost && isBHost) return 1;
               return 0;
@@ -499,8 +509,13 @@ function Home() {
             let statusText = `缺 ${party.maxPlayers - party.currentPlayers} 人`;
             let statusColor = '#ef4444'; // Red
 
-            const currentUserId = parseInt(localStorage.getItem('user_id'));
-            const isHost = (party.participants?.[0]?.id === currentUserId) || party.participants?.[0] === '我 (主揪)' || party.participants?.[0] === '主揪人';
+            const currentUserId = localStorage.getItem('user_id');
+            const isHost = currentUserId && (
+              (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
+              party.participants?.[0] === '我 (主揪)' || 
+              party.participants?.[0] === '主揪人' ||
+              (party.user_id && String(party.user_id) === String(currentUserId))
+            );
 
             if (isFull && isWaitlistFull) {
               statusText = '已完全額滿';
@@ -536,7 +551,7 @@ function Home() {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
                   }}>
-                    {(party.participants[0] && party.participants[0].id === parseInt(localStorage.getItem('user_id'))) || party.participants[0] === '我 (主揪)' || party.participants[0] === '主揪人' ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                    {isHost ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                   </button>
                 </div>
               </div>
