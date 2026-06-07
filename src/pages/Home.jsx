@@ -22,7 +22,6 @@ function Home() {
   const [temperature, setTemperature] = useState('--');
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
-  const [levelErrorMsg, setLevelErrorMsg] = useState('');
 
   // 載入初始資料
   useEffect(() => {
@@ -223,7 +222,7 @@ function Home() {
     const userLevelInSport = userLevels[newParty.type] || 'C'; // 若未設定則預設為最低 C
 
     if (rankValue[userLevelInSport] < requiredRank[newParty.level]) {
-      setLevelErrorMsg(`你的${newParty.type}程度為 ${userLevelInSport}，無法發起${newParty.level}的球局喔！`);
+      alert(`你的${newParty.type}程度為 ${userLevelInSport}，無法發起${newParty.level}喔！`);
       return;
     }
 
@@ -779,24 +778,6 @@ function Home() {
               </div>
               <button type="submit" className="login-button" style={{ marginTop: '10px' }}>送出回饋</button>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* 程度驗證失敗的專屬 Modal */}
-      {levelErrorMsg && (
-        <div className="modal-overlay" onClick={() => setLevelErrorMsg('')}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center', padding: '30px 20px' }}>
-            <div style={{ marginBottom: '20px', color: '#ef4444' }}>
-              <HelpCircle size={48} style={{ margin: '0 auto' }} />
-            </div>
-            <h2 style={{ marginBottom: '16px', fontSize: '1.25rem', fontWeight: 'bold' }}>無法發起球局</h2>
-            <p style={{ marginBottom: '24px', color: '#64748b', lineHeight: '1.5' }}>
-              {levelErrorMsg}
-            </p>
-            <button className="btn-action" onClick={() => setLevelErrorMsg('')} style={{ width: '100%' }}>
-              我知道了
-            </button>
           </div>
         </div>
       )}
