@@ -6,6 +6,7 @@ import notificationsApi from '../api/notifications';
 import weatherApi from '../api/weather';
 import adminApi from '../api/admin';
 import usersApi from '../api/users';
+import venuesApi from '../api/venues';
 import '../App.css';
 
 function Home() {
@@ -23,6 +24,14 @@ function Home() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
 
+  // 動態場地資料狀態
+  const [allVenues, setAllVenues] = useState([]); // [{id, name, city, dist, sports, facilities}]
+  const [taiwanRegions, setTaiwanRegions] = useState({
+    '未選擇': { '未選擇': ['無場地'] }
+  });
+  const [venueFacilities, setVenueFacilities] = useState({});
+  const [venueMap, setVenueMap] = useState({});
+
   // 載入初始資料
   useEffect(() => {
     const fetchData = async () => {
@@ -32,16 +41,49 @@ function Home() {
           gamesApi.getGames(),
           notificationsApi.getNotifications(),
           weatherApi.getWeatherAqi(),
-          usersApi.getUserProfile()
+          usersApi.getUserProfile(),
+          venuesApi.getCourts()
         ]);
         
         const gamesResult = results[0].status === 'fulfilled' ? results[0].value : [];
         const notificationsResult = results[1].status === 'fulfilled' ? results[1].value : [];
         const weatherResult = results[2].status === 'fulfilled' ? results[2].value : {};
         const userProfileResult = results[3].status === 'fulfilled' ? results[3].value : null;
+        const venuesResult = results[4].status === 'fulfilled' ? results[4].value : [];
         
         if (userProfileResult) {
           setUserProfile(userProfileResult);
+        }
+
+        const venuesList = Array.isArray(venuesResult) ? venuesResult : (venuesResult.results || []);
+        if (venuesList.length > 0) {
+          const venueDict = {};
+          
+          // Aggregate courts into unique venues
+          venuesList.forEach(court => {
+            if (!court.venue_detail) return;
+            const v = court.venue_detail;
+            if (!venueDict[v.id]) {
+              venueDict[v.id] = {
+                id: v.id,
+                name: v.name,
+                city: v.address_detail?.city || '未分類縣市',
+                district: v.address_detail?.district || '未分類區域',
+                facilities: v.facilities || [],
+                sports: new Set()
+              };
+            }
+            if (court.sports && Array.isArray(court.sports)) {
+              court.sports.forEach(s => venueDict[v.id].sports.add(s));
+            }
+          });
+          
+          const aggregatedVenues = Object.values(venueDict).map(v => ({
+            ...v,
+            sports: Array.from(v.sports)
+          }));
+          
+          setAllVenues(aggregatedVenues);
         }
 
         const reverseLevelMap = {
@@ -94,66 +136,6 @@ function Home() {
     fetchData();
   }, []);
 
-  // 台灣行政區與球場資料 (縣市 -> 區域 -> 球場)
-  const taiwanRegions = {
-    '桃園市': {
-      '桃園區': ['桃園國民運動中心', '桃園巨蛋室外籃球場', '陽明運動公園', '其他'],
-      '中壢區': ['中壢國民運動中心', '中原大學體育館', '中壢車站附近桌遊店', '其他'],
-      '平鎮區': ['平鎮國民運動中心', '新勢公園籃球場', '其他'],
-      '蘆竹區': ['蘆竹國民運動中心', '光明河濱公園', '其他'],
-      '龜山區': ['桃園虎頭山公園', '長庚大學體育館', '其他'],
-      '其他區': ['其他']
-    },
-    '台北市': {
-      '大安區': ['大安運動中心', '台大體育館', '和平東路球場', '其他'],
-      '信義區': ['信義運動中心', '象山公園球場', '其他'],
-      '中山區': ['中山運動中心', '新生公園', '其他'],
-      '內湖區': ['內湖運動中心', '彩虹河濱公園', '其他'],
-      '其他區': ['其他']
-    },
-    '新北市': {
-      '板橋區': ['板橋體育館', '板橋國民運動中心', '板橋羽球館', '其他'],
-      '新莊區': ['新莊體育館', '新莊國民運動中心', '其他'],
-      '三重區': ['三重國民運動中心', '三重球場', '其他'],
-      '中和區': ['中和運動中心', '錦和運動公園', '其他'],
-      '其他區': ['其他']
-    },
-    '台中市': {
-      '西屯區': ['台中市政府球場', '逢甲大學體育館', '台中陽光球場', '其他'],
-      '北屯區': ['台中洲際棒球場', '北屯球場', '其他'],
-      '其他區': ['其他']
-    }
-  };
-
-  // 場地設施資料庫
-  const venueFacilities = {
-    '桃園國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '桃園巨蛋室外籃球場': ['飲水機', '廁所'],
-    '中壢國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '平鎮國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '蘆竹國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '大安運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '信義運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '中山運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '內湖運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '板橋國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '新莊國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '三重國民運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '中和運動中心': ['冷氣', '飲水機', '廁所', '淋浴間'],
-    '台中市政府球場': ['飲水機', '廁所'],
-    '逢甲大學體育館': ['冷氣', '飲水機', '廁所'],
-    '中原大學體育館': ['冷氣', '飲水機', '廁所'],
-    '長庚大學體育館': ['冷氣', '飲水機', '廁所'],
-    '台大體育館': ['冷氣', '飲水機', '廁所'],
-    '新勢公園籃球場': ['飲水機', '廁所'],
-    '光明河濱公園': ['廁所'],
-    '陽明運動公園': ['廁所'],
-    '桃園虎頭山公園': ['廁所'],
-    '象山公園球場': ['飲水機', '廁所'],
-    '新生公園': ['廁所'],
-    '彩虹河濱公園': ['廁所'],
-    '其他': ['基本設施']
-  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -240,13 +222,6 @@ function Home() {
       '高手': 'A'
     };
 
-    // 場地ID對應，因為 API 只有特定的場地，前端的假資料直接先給 1 當作防呆
-    // 實務上應該由後端提供 GET /venues 給前端做選單
-    const venueMap = {
-      '大安運動中心': 1,
-      '板橋羽球館': 2,
-      '台中陽光球場': 3
-    };
     const venue_id = venueMap[newParty.venue] || 1;
 
     // 計算時間
@@ -318,10 +293,70 @@ function Home() {
     }
   };
 
+  // 當選擇的運動類型或場地清單改變時，重新計算下拉選單的選項
+  useEffect(() => {
+    if (allVenues.length === 0) return;
+
+    // 後端資料庫裡的運動名稱是英文，需要對應
+    const sportMap = {
+      '籃球': 'Basketball',
+      '排球': 'Volleyball',
+      '羽球': 'Badminton',
+      '麻將': 'Mahjohn',
+      '桌球': 'Table Tennis'
+    };
+    const dbSportName = sportMap[newParty.type] || newParty.type;
+
+    const filteredVenues = allVenues.filter(v => v.sports.includes(dbSportName) || v.sports.length === 0); // 若場地無標示運動也可顯示，或可拿掉此條件
+    
+    // 若該運動目前無可用場地，給個防呆
+    if (filteredVenues.length === 0) {
+      setTaiwanRegions({ '未選擇': { '未選擇': ['無適用場地'] } });
+      setVenueFacilities({});
+      setVenueMap({});
+      setNewParty(prev => ({ ...prev, city: '未選擇', district: '未選擇', venue: '無適用場地' }));
+      return;
+    }
+
+    const regions = {};
+    const facilities = {};
+    const vMap = {};
+
+    filteredVenues.forEach(v => {
+      if (!regions[v.city]) regions[v.city] = {};
+      if (!regions[v.city][v.district]) regions[v.city][v.district] = [];
+      regions[v.city][v.district].push(v.name);
+      facilities[v.name] = v.facilities;
+      vMap[v.name] = v.id;
+    });
+
+    setTaiwanRegions(regions);
+    setVenueFacilities(facilities);
+    setVenueMap(vMap);
+
+    // 檢查目前選的場地是否還在新的清單裡，不在的話重設為第一個
+    const currentCityValid = regions[newParty.city];
+    const currentDistValid = currentCityValid && regions[newParty.city][newParty.district];
+    const currentVenueValid = currentDistValid && regions[newParty.city][newParty.district].includes(newParty.venue);
+
+    if (!currentVenueValid) {
+      const firstCity = Object.keys(regions)[0];
+      const firstDist = firstCity ? Object.keys(regions[firstCity])[0] : '未選擇';
+      const firstVenue = firstDist ? regions[firstCity][firstDist][0] : '無適用場地';
+      
+      setNewParty(prev => ({
+        ...prev,
+        city: firstCity,
+        district: firstDist,
+        venue: firstVenue
+      }));
+    }
+  }, [newParty.type, allVenues]);
+
   const handleCityChange = (e) => {
     const selectedCity = e.target.value;
-    const firstDistrict = Object.keys(taiwanRegions[selectedCity])[0];
-    const firstVenue = taiwanRegions[selectedCity][firstDistrict][0];
+    const firstDistrict = taiwanRegions[selectedCity] ? Object.keys(taiwanRegions[selectedCity])[0] : '';
+    const firstVenue = taiwanRegions[selectedCity] && taiwanRegions[selectedCity][firstDistrict] ? taiwanRegions[selectedCity][firstDistrict][0] : '';
     setNewParty({
       ...newParty,
       city: selectedCity,
@@ -332,7 +367,7 @@ function Home() {
 
   const handleDistrictChange = (e) => {
     const selectedDistrict = e.target.value;
-    const firstVenue = taiwanRegions[newParty.city][selectedDistrict][0];
+    const firstVenue = taiwanRegions[newParty.city] && taiwanRegions[newParty.city][selectedDistrict] ? taiwanRegions[newParty.city][selectedDistrict][0] : '';
     setNewParty({
       ...newParty,
       district: selectedDistrict,
@@ -680,7 +715,7 @@ function Home() {
                   <div className="form-group">
                     <label className="form-label">地點 (區域)</label>
                     <select className="form-input" value={newParty.district} onChange={handleDistrictChange}>
-                      {Object.keys(taiwanRegions[newParty.city]).map(dist => (
+                      {Object.keys(taiwanRegions[newParty.city] || {}).map(dist => (
                         <option key={dist} value={dist}>{dist}</option>
                       ))}
                     </select>
@@ -688,7 +723,7 @@ function Home() {
                   <div className="form-group">
                     <label className="form-label">地點 (場館/球場)</label>
                     <select className="form-input" value={newParty.venue} onChange={e => setNewParty({...newParty, venue: e.target.value})}>
-                      {taiwanRegions[newParty.city][newParty.district].map(v => (
+                      {(taiwanRegions[newParty.city]?.[newParty.district] || []).map(v => (
                         <option key={v} value={v}>{v}</option>
                       ))}
                     </select>

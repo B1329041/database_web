@@ -99,8 +99,13 @@ function PartyDetail() {
       const fetchAnnouncements = async () => {
         try {
           const data = await gamesApi.getAnnouncements(party.id);
-          // 假設後端回傳的是陣列
-          setAnnouncements(Array.isArray(data) ? data : []);
+            const dataArray = Array.isArray(data) ? data : (data.results || []);
+            const formatted = dataArray.map(a => ({
+              id: a.id,
+              text: a.text || a.content || a.title || '',
+              time: a.time || (a.created_at ? new Date(a.created_at).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '')
+            }));
+            setAnnouncements(formatted);
         } catch (error) {
           console.error('Fetch announcements error:', error);
           // 若後端 API 尚未實作或報錯，則保持空陣列
@@ -637,10 +642,13 @@ function PartyDetail() {
                   value={newAnnouncement}
                   onChange={e => setNewAnnouncement(e.target.value)}
                   style={{ flex: 1, margin: 0 }}
-                  onKeyPress={e => {
+                  onKeyPress={async e => {
                     if (e.key === 'Enter' && newAnnouncement.trim()) {
-                      setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
-                      setNewAnnouncement('');
+                      try {
+                        await gamesApi.createAnnouncement(party.id, { text: newAnnouncement });
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
+                        setNewAnnouncement('');
+                      } catch (err) { alert('發佈失敗'); }
                     }
                   }}
                 />
@@ -651,7 +659,7 @@ function PartyDetail() {
                     if (newAnnouncement.trim()) {
                       try {
                         await gamesApi.createAnnouncement(party.id, { text: newAnnouncement });
-                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }]);
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
                         setNewAnnouncement('');
                       } catch (e) { alert('發佈失敗'); }
                     }
