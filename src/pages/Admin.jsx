@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle } from 'lucide-react';
 import adminApi from '../api/admin';
@@ -46,8 +46,39 @@ function Admin() {
           adminApi.getAdminAnalytics(),
           adminApi.getFeedbacks()
         ]);
-        setAnalytics(analyticsData);
-        setFeedbacks(feedbacksData);
+        
+        // 映射數據分析資料
+        const mappedAnalytics = {
+          active_users: analyticsData.active_users_today || 0,
+          active_games: analyticsData.ongoing_games_count || 0,
+          system_messages: 0, // 後端未提供，預設為 0
+          daily_activity: [],
+          popular_sports: []
+        };
+
+        if (analyticsData.activity_trend) {
+          const reversedTrend = [...analyticsData.activity_trend].reverse();
+          const maxCount = Math.max(...reversedTrend.map(x => x.count), 1);
+          mappedAnalytics.daily_activity = reversedTrend.map(x => (x.count / maxCount) * 100);
+        } else {
+          mappedAnalytics.daily_activity = [0, 0, 0, 0, 0, 0, 0];
+        }
+
+        if (analyticsData.sports_ratio) {
+          const totalGames = Object.values(analyticsData.sports_ratio).reduce((sum, val) => sum + val, 0);
+          mappedAnalytics.popular_sports = Object.entries(analyticsData.sports_ratio)
+            .map(([name, count]) => {
+              const pctVal = totalGames > 0 ? (count / totalGames) * 100 : 0;
+              return [name, `${Math.round(pctVal)}%`, pctVal];
+            })
+            .sort((a, b) => b[2] - a[2])
+            .map(([name, pct]) => [name, pct]);
+        } else {
+          mappedAnalytics.popular_sports = [['無資料', '0%']];
+        }
+
+        setAnalytics(mappedAnalytics);
+        setFeedbacks(feedbacksData || []);
       } catch (error) {
         console.error('Admin data fetch error:', error);
       }
@@ -400,11 +431,11 @@ function Admin() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '40px', height: '40px', backgroundColor: '#f1f5f9', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#7995a5' }}>
-                        {f.user.charAt(0)}
+                        {(f.user_name || '').charAt(0)}
                       </div>
                       <div>
-                        <div style={{ fontWeight: '700', fontSize: '15px' }}>{f.user}</div>
-                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>回報日期：{f.date}</div>
+                        <div style={{ fontWeight: '700', fontSize: '15px' }}>{f.user_name || `User #${f.user}`}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>回報日期：{f.created_at ? new Date(f.created_at).toLocaleDateString() : ''}</div>
                       </div>
                     </div>
                     <span style={{ 
@@ -424,7 +455,7 @@ function Admin() {
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px', alignItems: 'center' }}>
                     <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={async () => {
                       try {
-                        await adminApi.handleFeedback(f.id, '已處理');
+                        await adminApi.handleFeedback(f.id, { is_handled: true });
                         setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, is_handled: true } : fb));
                       } catch (error) {
                         alert('標記失敗');

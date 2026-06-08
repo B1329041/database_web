@@ -34,6 +34,7 @@ function Register() {
     try {
       // 註冊前先清空可能殘留的舊 Token，避免 DRF 報錯 (Invalid Token)
       localStorage.removeItem('token');
+      localStorage.removeItem('role');
       const response = await authApi.register({ name: nickname, email, password });
       
       // 儲存 Django 回傳的 token
@@ -42,6 +43,9 @@ function Register() {
       }
       if (response && response.user_id) {
         localStorage.setItem('user_id', response.user_id);
+      }
+      if (response && response.role) {
+        localStorage.setItem('role', response.role);
       }
       
       alert('註冊成功！請繼續完成個人檔案設定。');

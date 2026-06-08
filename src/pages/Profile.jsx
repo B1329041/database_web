@@ -21,7 +21,8 @@ function Profile() {
     bio: '',
     region: '桃園市',
     levels: {},
-    avatar: ''
+    avatar: '',
+    role: localStorage.getItem('role') || ''
   });
   const [reputation, setReputation] = useState({ score: 100, label: '優良玩家，從不爽約！' });
   const [myParties, setMyParties] = useState([]);
@@ -43,8 +44,12 @@ function Profile() {
           bio: data.bio || '',
           region: '桃園市',
           levels: data.levels || {},
-          avatar: data.avatar_url || data.avatar || ''
+          avatar: data.avatar_url || data.avatar || '',
+          role: data.role || ''
         });
+        if (data.role) {
+          localStorage.setItem('role', data.role);
+        }
         
         if (data.credit_point !== undefined) {
           setReputation({ 
@@ -287,6 +292,16 @@ function Profile() {
                   <button className="btn-outline" style={{ width: '100%', marginTop: '20px' }} onClick={() => setIsEditing(true)}>
                     編輯個人資料
                   </button>
+                  
+                  {userInfo.role === 'admin' && (
+                    <button 
+                      className="btn-primary" 
+                      style={{ width: '100%', marginTop: '10px', backgroundColor: '#475569', border: 'none' }} 
+                      onClick={() => navigate('/admin')}
+                    >
+                      切換為管理員
+                    </button>
+                  )}
                 </>
               ) : (
                 <form onSubmit={handleSave} className="edit-profile-form">
