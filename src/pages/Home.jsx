@@ -102,7 +102,7 @@ function Home() {
           const originalLevel = party.level || party.target_level || 'C';
           const rawLevel = reverseLevelMap[originalLevel] || originalLevel;
           let venueStatus = 'pending';
-          if (party.booking_status === '已確認/已預約' || party.booking_status === 'confirmed' || party.game_note === 'CONFIRMED') {
+          if (party.booking_status === '已確認/已預約' || party.booking_status === '已預約/已確認' || party.booking_status === 'confirmed' || party.game_note === 'CONFIRMED') {
             venueStatus = 'confirmed';
           } else if (party.booking_status === '未借到場地' || party.booking_status === 'failed' || party.game_note === 'FAILED') {
             venueStatus = 'failed';

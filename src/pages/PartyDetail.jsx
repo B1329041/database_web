@@ -36,7 +36,29 @@ function PartyDetail() {
     const party = location.state?.party || defaultParty;
     const processedParty = { ...party };
 
-    // 確保 participants 是物件陣列格式
+    // Robust venue status determination to prevent asking for confirmation again
+    let currentVenueStatus = processedParty.venueStatus;
+    
+    // If not explicitly 'confirmed' or 'failed', try to deduce from backend strings
+    if (currentVenueStatus !== 'confirmed' && currentVenueStatus !== 'failed') {
+      const bs = processedParty.booking_status || processedParty.bookingStatus || '';
+      const gn = processedParty.game_note || processedParty.description || '';
+      
+      const confirmedKeywords = ['已確認/已預約', '已預約/已確認', '已確認', 'confirmed', 'CONFIRMED'];
+      const failedKeywords = ['未借到場地', '場地失敗', '未借到', 'failed', 'FAILED'];
+      
+      if (confirmedKeywords.some(kw => bs.includes(kw) || gn.includes(kw))) {
+        currentVenueStatus = 'confirmed';
+      } else if (failedKeywords.some(kw => bs.includes(kw) || gn.includes(kw))) {
+        currentVenueStatus = 'failed';
+      } else {
+        currentVenueStatus = 'pending';
+      }
+    }
+    
+    processedParty.venueStatus = currentVenueStatus;
+
+    // 確保 participants 是陣列格式
     if (processedParty.participants && typeof processedParty.participants[0] === 'string') {
       processedParty.participants = processedParty.participants.map((p, idx) => ({
         name: p,
