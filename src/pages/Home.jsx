@@ -203,7 +203,15 @@ function Home() {
   const handleCreateParty = async (e) => {
     e.preventDefault();
 
-    // 時間驗證
+    if (newParty.genderLimit && newParty.genderLimit !== '不限') {
+      const userGender = userProfile?.gender || '未公開';
+      if (userGender !== newParty.genderLimit) {
+        alert(`主揪性別為「${userGender}」，無法發起「${newParty.genderLimit}」的揪團！`);
+        return;
+      }
+    }
+
+    // 檢查時間驗證
     const selectedTime = new Date(newParty.time);
     const now = new Date();
     if (selectedTime < now) {

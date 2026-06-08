@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Clock, ArrowLeft, Timer, DollarSign, Info, CheckCircle2, Users, AlertTriangle, Eye, Bell, MessageCircle } from 'lucide-react';
 import gamesApi from '../api/games';
 import reportsApi from '../api/reports';
+import usersApi from '../api/users';
 import '../App.css';
 
 function PartyDetail() {
@@ -76,6 +77,21 @@ function PartyDetail() {
   // 新增：場地狀態與檢舉功能狀態
   const [isHostView, setIsHostView] = useState(isUserHost); // 根據是否為主揪動態切換
   const [isTimeApproaching, setIsTimeApproaching] = useState(false);
+  const [userGender, setUserGender] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const profile = await usersApi.getUserProfile();
+        setUserGender(profile.gender);
+      } catch (err) {
+        console.error('Failed to fetch user profile:', err);
+      }
+    };
+    if (currentUserId && !isUserHost) {
+      fetchUser();
+    }
+  }, [currentUserId, isUserHost]);
 
   useEffect(() => {
     if (party?.booking_date && party?.start_time) {
@@ -203,6 +219,14 @@ function PartyDetail() {
   };
 
   const handleJoin = () => {
+    // Frontend proactive gender check
+    if (party.genderLimit && party.genderLimit !== '不限') {
+      const gender = userGender || '未公開';
+      if (gender !== party.genderLimit) {
+        alert(`此揪團${party.genderLimit}，您的性別為「${gender}」，無法加入或候補！`);
+        return;
+      }
+    }
     confirmJoin(false);
   };
 
