@@ -74,7 +74,30 @@ function PartyDetail() {
   
   // 新增：場地狀態與檢舉功能狀態
   const [isHostView, setIsHostView] = useState(isUserHost); // 根據是否為主揪動態切換
-  const [isTimeApproaching, setIsTimeApproaching] = useState(false); // 測試用：模擬距離活動小於30分
+  const [isTimeApproaching, setIsTimeApproaching] = useState(false);
+
+  useEffect(() => {
+    if (party?.booking_date && party?.start_time) {
+      const checkTime = () => {
+        const now = new Date();
+        const [year, month, day] = party.booking_date.split('-');
+        const [hours, minutes] = party.start_time.split(':');
+        
+        const startTime = new Date(year, month - 1, day, hours, minutes);
+        const timeDiff = startTime.getTime() - now.getTime();
+        
+        if (timeDiff <= 3600000 && timeDiff > -7200000) {
+          setIsTimeApproaching(true);
+        } else {
+          setIsTimeApproaching(false);
+        }
+      };
+
+      checkTime();
+      const interval = setInterval(checkTime, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [party]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, text: '你報名的「歡樂衛生麻將局」場地已確認！', time: '10 分鐘前', read: false },
@@ -103,7 +126,7 @@ function PartyDetail() {
             const formatted = dataArray.map(a => ({
               id: a.id,
               text: a.text || a.content || a.title || '',
-              time: a.time || (a.created_at ? new Date(a.created_at).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '')
+              time: a.created_at ? new Date(a.created_at).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : (a.date && a.time ? `${a.date} ${a.time}` : a.time || '')
             }));
             setAnnouncements(formatted);
         } catch (error) {
@@ -269,13 +292,13 @@ function PartyDetail() {
           </div>
 
           <div style={{ padding: '40px' }}>
-            {isHostView && isTimeApproaching && (
+            {isHostView && isTimeApproaching && party.venueStatus === 'pending' && (
               <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b' }}>👑 是否借到場地？</h3>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button className="btn-primary" style={{ flex: 1, backgroundColor: '#10b981', border: 'none' }} onClick={async () => { 
                     try {
-                      await gamesApi.updateVenueStatus(party.id, { status: 'confirmed' });
+                      await gamesApi.updateVenueStatus(party.id, { status: 'confirmed', note: 'CONFIRMED' });
                       setParty({...party, venueStatus: 'confirmed'}); 
                       showToast('已通知所有成員：場地確認成功！'); 
                     } catch(e) { alert('更新失敗'); }
@@ -284,7 +307,7 @@ function PartyDetail() {
                   </button>
                   <button className="btn-outline" style={{ flex: 1, color: '#ef4444', borderColor: '#ef4444' }} onClick={async () => { 
                     try {
-                      await gamesApi.updateVenueStatus(party.id, { status: 'failed' });
+                      await gamesApi.updateVenueStatus(party.id, { status: 'failed', note: 'FAILED' });
                       setParty({...party, venueStatus: 'failed'}); 
                       showToast('已通知所有成員：活動取消！'); 
                     } catch(e) { alert('更新失敗'); }
@@ -310,11 +333,13 @@ function PartyDetail() {
 
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <MapPin size={20} color="#7995a5" />
-                <span style={{ color: '#64748b', fontWeight: '600' }}>地點：</span>
-                <span style={{ fontWeight: '800' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '14px', color: '#64748b', marginBottom: '4px' }}>地點</span>
+                <span style={{ fontWeight: '800', color: '#1e293b' }}>
                   {party.location}
-                  {party.venue_note && <span style={{ marginLeft: '6px', color: '#64748b', fontSize: '14px', fontWeight: 'normal' }}>({party.venue_note})</span>}
+                  {party.venue_note && party.venue_note !== 'CONFIRMED' && party.venue_note !== 'FAILED' && <span style={{ marginLeft: '6px', color: '#64748b', fontSize: '14px', fontWeight: 'normal' }}>({party.venue_note})</span>}
                 </span>
+              </div>
               </div>
 
               <div className="detail-info-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -646,7 +671,7 @@ function PartyDetail() {
                     if (e.key === 'Enter' && newAnnouncement.trim()) {
                       try {
                         await gamesApi.createAnnouncement(party.id, { text: newAnnouncement });
-                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
                         setNewAnnouncement('');
                       } catch (err) { alert('發佈失敗'); }
                     }
@@ -659,7 +684,7 @@ function PartyDetail() {
                     if (newAnnouncement.trim()) {
                       try {
                         await gamesApi.createAnnouncement(party.id, { text: newAnnouncement });
-                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
+                        setAnnouncements([...announcements, { id: Date.now(), text: newAnnouncement, time: new Date().toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }]);
                         setNewAnnouncement('');
                       } catch (e) { alert('發佈失敗'); }
                     }

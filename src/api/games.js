@@ -7,7 +7,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   getGames: (params) => {
-    return axiosClient.get('/games', { params });
+    return axiosClient.get('/games', { params: { ...params, _t: Date.now() } });
   },
 
   /**

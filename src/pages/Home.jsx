@@ -101,10 +101,17 @@ function Home() {
           const rawType = party.type || party.sport_type || party.sport_name || '運動';
           const originalLevel = party.level || party.target_level || 'C';
           const rawLevel = reverseLevelMap[originalLevel] || originalLevel;
+          let venueStatus = 'pending';
+          if (party.booking_status === '已確認/已預約' || party.booking_status === 'confirmed' || party.game_note === 'CONFIRMED') {
+            venueStatus = 'confirmed';
+          } else if (party.booking_status === '未借到場地' || party.booking_status === 'failed' || party.game_note === 'FAILED') {
+            venueStatus = 'failed';
+          }
           
           return {
             ...party,
             id: party.id,
+            venueStatus: venueStatus,
             title: party.game_name || party.title || party.description?.substring(0, 10) || '無標題揪團',
             type: rawType,
             level: rawLevel,
@@ -123,7 +130,23 @@ function Home() {
         });
         
         setParties(formattedGames);
-        setNotifications(Array.isArray(notificationsResult) ? notificationsResult : []);
+        const mappedNotifications = (Array.isArray(notificationsResult) ? notificationsResult : []).map(n => ({
+          id: n.notification_id || n.id,
+          text: n.message || n.text || '',
+          read: n.is_read !== undefined ? n.is_read : (n.read || false),
+          time: n.created_at ? new Date(n.created_at).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : (n.time || ''),
+          match_id: n.match_id || n.game_id
+        }));
+
+        const validNotifications = mappedNotifications.filter(n => {
+          if (n.text && n.text.includes('場地狀態已更新')) {
+            const party = formattedGames.find(g => g.id === n.match_id);
+            const isHost = party ? (party.creator_id === currentUserId || party.creator === currentUserId) : false;
+            if (isHost) return false;
+          }
+          return true;
+        });
+        setNotifications(validNotifications);
         setAqi(weatherResult?.aqi ?? '--');
         setTemperature(weatherResult?.temperature ?? '--');
       } catch (error) {
@@ -265,6 +288,7 @@ function Home() {
       const formattedNewGame = {
         ...newGame,
         id: newGame.id || Date.now(),
+        venueStatus: 'pending',
         title: newGame.title || newGame.description?.substring(0, 10) || newParty.title || '無標題揪團',
         type: rawType,
         level: rawLevel,
@@ -756,9 +780,9 @@ function Home() {
                   </label>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>* 請填寫包含主揪在內的總人數！</div>
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <input required type="number" min="1" max="20" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
+                    <input required type="number" min="1" max="100" className="form-input" value={newParty.minPlayers} onChange={e => setNewParty({...newParty, minPlayers: e.target.value})} />
                     <span style={{ color: '#64748b' }}>~</span>
-                    <input required type="number" min="2" max="20" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
+                    <input required type="number" min="2" max="100" className="form-input" value={newParty.maxPlayers} onChange={e => setNewParty({...newParty, maxPlayers: e.target.value})} />
                   </div>
                 </div>
               </div>
