@@ -607,8 +607,13 @@ function Home() {
               badgeStatusText = '已關閉';
               badgeStatusColor = '#64748b'; // Gray
             } else if (backendStatus === '已滿' || backendStatus === 'full') {
-              badgeStatusText = '已滿';
-              badgeStatusColor = '#94a3b8'; // Gray
+              if (!isWaitlistFull) {
+                badgeStatusText = '可候補';
+                badgeStatusColor = '#f59e0b'; // Orange
+              } else {
+                badgeStatusText = '已滿';
+                badgeStatusColor = '#94a3b8'; // Gray
+              }
             } else if (backendStatus === '可候補' || backendStatus === 'waitlisting') {
               badgeStatusText = '可候補';
               badgeStatusColor = '#f59e0b'; // Orange
