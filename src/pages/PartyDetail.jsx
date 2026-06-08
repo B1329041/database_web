@@ -62,11 +62,12 @@ function PartyDetail() {
   // 判斷當前使用者是否為主揪或已加入
   const currentUserId = parseInt(localStorage.getItem('user_id'));
   const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || initialParty.participants?.[0]?.name === '主揪人' || (initialParty.participants?.[0]?.id === currentUserId);
-  const initialHasJoined = isUserHost || 
-                           initialParty.participants?.some(p => p.name === '我 (使用者)' || p.id === currentUserId) || 
-                           initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
+  const initialIsParticipant = initialParty.participants?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
+  const initialIsWaitlisted = initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
+  const initialHasJoined = isUserHost || initialIsParticipant || initialIsWaitlisted;
 
   const [hasJoined, setHasJoined] = useState(initialHasJoined);
+  const [isWaitlisted, setIsWaitlisted] = useState(initialIsWaitlisted);
   const [joinType, setJoinType] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
@@ -167,26 +168,27 @@ function PartyDetail() {
       };
       
       const isWaitlist = response && response.status === 'waitlist';
-      
-      if (!isWaitlist) {
-        setParty(prev => ({
-          ...prev,
-          currentPlayers: prev.currentPlayers + 1,
-          participants: [...prev.participants, newMember]
-        }));
-        setJoinType('normal');
-        setHasJoined(true);
-        showToast('報名成功！你已在正取名單中。');
-      } else {
-        const pos = response.position || (party.currentWaitlist + 1);
-        setParty(prev => ({
+            if (!isWaitlist) {
+          setParty(prev => ({
+            ...prev,
+            currentPlayers: prev.currentPlayers + 1,
+            participants: [...prev.participants, newMember]
+          }));
+          setJoinType('normal');
+          setHasJoined(true);
+          setIsWaitlisted(false);
+          showToast('報名成功，已在參加名單中！');
+        } else {
+          const pos = response.position || (party.currentWaitlist + 1);
+          setParty(prev => ({
           ...prev,
           currentWaitlist: prev.currentWaitlist + 1,
           waitlist: [...prev.waitlist, newMember]
         }));
         setJoinType('waitlist');
         setHasJoined(true);
-        showToast(`已進入候補名單！目前順位為第 ${pos} 位。`);
+        setIsWaitlisted(true);
+        showToast(`已進入候補名單，目前為第 ${pos} 順位！`);
       }
     } catch (error) {
       console.error('Join error:', error);
@@ -219,12 +221,13 @@ function PartyDetail() {
           currentWaitlist: prev.currentWaitlist - 1,
           waitlist: prev.waitlist.filter(p => p.name !== '我 (使用者)')
         }));
-      }
-      setHasJoined(false);
-      setJoinType(null);
-      showToast('已成功取消報名。');
-    } catch (error) {
-      console.error('Cancel error:', error);
+        }
+        setHasJoined(false);
+        setJoinType(null);
+        showToast(isWaitlisted ? '已取消候補' : '已取消報名');
+        setIsWaitlisted(false);
+      } catch (error) {
+        console.error('Cancel error:', error);
       alert('取消失敗，請確認伺服器狀態！');
     }
   };
@@ -391,11 +394,11 @@ function PartyDetail() {
                 <button className="btn-action cancel" style={{ width: '100%' }} onClick={handleDeleteGame}>
                   取消揪團
                 </button>
-              ) : hasJoined ? (
-                <button className="btn-action cancel" onClick={handleCancel}>
-                  取消報名
-                </button>
-              ) : isFull && isWaitlistFull ? (
+                ) : hasJoined ? (
+                  <button className="btn-action cancel" onClick={handleCancel}>
+                    {isWaitlisted ? '取消候補' : '取消報名'}
+                  </button>
+                ) : isFull && isWaitlistFull ? (
                 <button className="btn-action disabled" disabled>
                   已完全額滿
                 </button>

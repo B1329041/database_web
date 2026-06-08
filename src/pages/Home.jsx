@@ -590,6 +590,7 @@ function Home() {
               (party.user_id && String(party.user_id) === String(currentUserId))
             );
             const isParticipant = currentUserId && party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+            const isWaitlisted = currentUserId && party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
 
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
@@ -681,7 +682,7 @@ function Home() {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
                   }}>
-                    {isHost ? '管理' : isParticipant ? '已報名' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                    {isHost ? '管理' : isParticipant ? '已報名' : isWaitlisted ? '已候補' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                   </button>
                 </div>
               </div>

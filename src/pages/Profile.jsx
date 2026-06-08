@@ -66,7 +66,8 @@ function Profile() {
           const userGames = rawGames.filter(party => {
             const isHost = party.creator_id && String(party.creator_id) === String(currentUserId);
             const isParticipant = party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
-            return isHost || isParticipant;
+            const isWaitlisted = party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+            return isHost || isParticipant || isWaitlisted;
           }).map(newGame => {
             const rawType = newGame.type || newGame.sport_type || newGame.sport_name || (newGame.sport?.name) || '未分類';
             const rawLevel = newGame.level || newGame.target_level || 'C';
@@ -402,6 +403,8 @@ function Profile() {
                     party.participants?.[0] === '主揪人' ||
                     (party.user_id && String(party.user_id) === String(currentUserId))
                   );
+                  const isParticipant = currentUserId && party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+                  const isWaitlisted = currentUserId && party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
 
                   const isFull = party.currentPlayers >= party.maxPlayers;
                   const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
@@ -491,7 +494,7 @@ function Profile() {
                           e.stopPropagation();
                           navigate(`/party/${party.id}`, { state: { party } });
                         }}>
-                          {isHost ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                          {isHost ? '管理' : isParticipant ? '已報名' : isWaitlisted ? '已候補' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                         </button>
                       </div>
                     </div>
