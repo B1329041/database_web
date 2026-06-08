@@ -283,8 +283,7 @@ function Home() {
       total_price: parseFloat(newParty.price) || 0,
       gender_limit: newParty.genderLimit,
       game_name: newParty.title,
-      game_note: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！',
-      venue_note: newParty.note
+      game_note: newParty.description || '這是我剛發起的揪團，歡迎大家來玩！'
     };
 
     try {
@@ -304,7 +303,6 @@ function Home() {
         genderLimit: newGame.genderLimit || newGame.gender_limit || newParty.genderLimit,
         location: newGame.location || newGame.venue_name || newParty.venue,
         description: newGame.game_note || newGame.description || newParty.description,
-        venue_note: newGame.venue_note || newGame.game_note || newParty.note,
         time: newGame.time || (newGame.booking_date ? `${newGame.booking_date} ${newGame.time_slot || ''}` : newParty.time.replace('T', ' ')),
         currentPlayers: newGame.currentPlayers ?? newGame.current_players ?? 1,
         maxPlayers: newGame.maxPlayers ?? newGame.most_players ?? newGame.max_players ?? parseInt(newParty.maxPlayers, 10),
@@ -316,7 +314,7 @@ function Home() {
       setParties([formattedNewGame, ...parties]); 
       setIsModalOpen(false);
       setNewParty({ 
-        title: '', type: '籃球', level: '休閒', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', note: '', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
+        title: '', type: '籃球', level: '休閒', genderLimit: '不限', city: '桃園市', district: '桃園區', venue: '桃園國民運動中心', description: '', price: '', time: '', duration: '2 小時', minPlayers: 2, maxPlayers: 4 
       });
       alert('發起成功！');
     } catch (error) {
@@ -680,7 +678,7 @@ function Home() {
                 </div>
                 <h3 className="party-title">{party.title}</h3>
                 <div className="party-info">
-                  <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}{party.venue_note ? ` (${party.venue_note})` : ''}</p>
+                  <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}</p>
                   <p style={{ gap: '6px' }}><Clock size={16} /> {party.time}</p>
                 </div>
                 <div className="party-card-footer">
@@ -828,10 +826,6 @@ function Home() {
                         <option key={v} value={v}>{v}</option>
                       ))}
                     </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">詳細地點說明 (選填)</label>
-                    <input type="text" className="form-input" placeholder="例如：第 3 面場地、或是具體路口" value={newParty.note} onChange={e => setNewParty({...newParty, note: e.target.value})} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">總額費用</label>
