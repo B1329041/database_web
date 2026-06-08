@@ -408,6 +408,81 @@ function Home() {
     });
   };
 
+  const renderModalContent = () => {
+    if (!selectedAnnouncement) return null;
+    const content = selectedAnnouncement.content;
+    
+    // 1. 新的結構化格式
+    if (selectedAnnouncement.title === '系統通知' && content.includes('[Feedback]\n') && content.includes('[Reply]\n')) {
+      const parts = content.split('\n');
+      const feedbackHeaderIdx = parts.indexOf('[Feedback]');
+      const replyHeaderIdx = parts.indexOf('[Reply]');
+      
+      let feedbackText = '';
+      let replyText = '';
+      
+      if (feedbackHeaderIdx !== -1 && replyHeaderIdx !== -1) {
+        feedbackText = parts.slice(feedbackHeaderIdx + 1, replyHeaderIdx).join('\n').trim();
+        replyText = parts.slice(replyHeaderIdx + 1).join('\n').trim();
+      } else {
+        return <div style={{ whiteSpace: 'pre-wrap' }}>{content}</div>;
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', marginTop: '10px' }}>
+          <div style={{ padding: '14px 18px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>您的意見回饋：</div>
+            <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{feedbackText}</div>
+          </div>
+          <div style={{ padding: '14px 18px', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', borderLeft: '4px solid #22c55e' }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#166534', marginBottom: '6px' }}>
+              💬 管理員回覆：
+            </div>
+            <div style={{ fontSize: '14px', color: '#14532d', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontWeight: '500' }}>{replyText}</div>
+          </div>
+        </div>
+      );
+    }
+    
+    // 2. 舊的單行格式 (相容先前產生的舊資料)
+    if (selectedAnnouncement.title === '系統通知' && content.startsWith('【回饋處理通知】') && content.includes('管理員回覆：')) {
+      const cleanContent = content.replace('【回饋處理通知】', '').trim();
+      const replyPrefix = '管理員回覆：';
+      const prefixIndex = cleanContent.indexOf(replyPrefix);
+      
+      let infoText = '';
+      let replyText = '';
+      
+      if (prefixIndex !== -1) {
+        infoText = cleanContent.substring(0, prefixIndex).trim();
+        replyText = cleanContent.substring(prefixIndex + replyPrefix.length).trim();
+      } else {
+        infoText = cleanContent;
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', marginTop: '10px' }}>
+          {infoText && (
+            <div style={{ padding: '14px 18px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>處理狀態：</div>
+              <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.5' }}>{infoText}</div>
+            </div>
+          )}
+          {replyText && (
+            <div style={{ padding: '14px 18px', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', borderLeft: '4px solid #22c55e' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#166534', marginBottom: '6px' }}>
+                💬 管理員回覆：
+              </div>
+              <div style={{ fontSize: '14px', color: '#14532d', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontWeight: '500' }}>{replyText}</div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    return <div style={{ whiteSpace: 'pre-wrap' }}>{content}</div>;
+  };
+
   return (
     <div className="home-container">
       {/* 導覽列 */}
@@ -460,30 +535,40 @@ function Home() {
                           }
                           setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
                           
-                          // 判斷是否為系統公告通知，如果是則觸發彈窗顯示
-                          if (n.text && n.text.includes('【系統公告】')) {
-                            const refMatch = n.text.match(/\(Ref:\s*#(\d+)\)/);
-                            let title = '系統公告';
-                            let content = n.text.replace('【系統公告】', '');
-                            let photos = [];
-                            
-                            if (refMatch) {
-                              const announcementId = Number(refMatch[1]);
-                              const found = systemAnnouncements.find(a => a.id === announcementId);
-                              if (found) {
-                                title = found.title;
-                                content = found.content;
-                                photos = found.photo || [];
+                          // 處理點擊通知以彈窗展開
+                          if (n.text) {
+                            if (n.text.includes('【系統公告】')) {
+                              const refMatch = n.text.match(/\(Ref:\s*#(\d+)\)/);
+                              let title = '系統公告';
+                              let content = n.text.replace('【系統公告】', '');
+                              let photos = [];
+                              
+                              if (refMatch) {
+                                const announcementId = Number(refMatch[1]);
+                                const found = systemAnnouncements.find(a => a.id === announcementId);
+                                if (found) {
+                                  title = found.title;
+                                  content = found.content;
+                                  photos = found.photo || [];
+                                }
+                              } else {
+                                const cleanText = n.text.replace('【系統公告】', '');
+                                const colonIndex = cleanText.indexOf('：');
+                                if (colonIndex !== -1) {
+                                  title = cleanText.substring(0, colonIndex).trim();
+                                  content = cleanText.substring(colonIndex + 1).trim();
+                                }
                               }
+                              setSelectedAnnouncement({ title, content, time: n.time, photos });
                             } else {
-                              const cleanText = n.text.replace('【系統公告】', '');
-                              const colonIndex = cleanText.indexOf('：');
-                              if (colonIndex !== -1) {
-                                title = cleanText.substring(0, colonIndex).trim();
-                                content = cleanText.substring(colonIndex + 1).trim();
-                              }
+                              // 其他所有通知也支援以「系統通知」彈窗展開，方便查閱完整回覆
+                              setSelectedAnnouncement({ 
+                                title: '系統通知', 
+                                content: n.text, 
+                                time: n.time, 
+                                photos: [] 
+                              });
                             }
-                            setSelectedAnnouncement({ title, content, time: n.time, photos });
                           }
                         }}
                       >
@@ -491,7 +576,9 @@ function Home() {
                           {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>
+                            {n.text.startsWith('【回饋處理通知】') ? '【回饋處理通知】' : (n.text.includes('\n') ? n.text.split('\n')[0] : n.text)}
+                          </p>
                           <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
                         </div>
                         {/* 已讀後顯示刪除通知按鈕 */}
@@ -980,8 +1067,8 @@ function Home() {
               </h3>
               <button className="modal-close" onClick={() => setSelectedAnnouncement(null)}>×</button>
             </div>
-            <div style={{ maxHeight: '300px', overflowY: 'auto', color: '#475569', fontSize: '15px', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: '20px 0', paddingRight: '8px', textAlign: 'left' }}>
-              {selectedAnnouncement.content}
+            <div style={{ maxHeight: '300px', overflowY: 'auto', color: '#475569', fontSize: '15px', lineHeight: '1.6', margin: '20px 0', paddingRight: '8px', textAlign: 'left' }}>
+              {renderModalContent()}
               {selectedAnnouncement.photos && selectedAnnouncement.photos.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
                   {selectedAnnouncement.photos.map((p, idx) => (

@@ -34,6 +34,9 @@ function Admin() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [editFiles, setEditFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackFilter, setFeedbackFilter] = useState('pending'); // 'pending' or 'handled'
+  const [replyingFeedbackId, setReplyingFeedbackId] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const [filterCity, setFilterCity] = useState('');
   const [filterDistrict, setFilterDistrict] = useState('');
   const [users, setUsers] = useState([]);
@@ -412,6 +415,42 @@ function Admin() {
       } catch (error) {
         console.error('Delete announcement error:', error);
         alert('刪除公告失敗，請稍後再試。');
+      }
+    }
+  };
+
+  const handleCompleteFeedback = async (id) => {
+    if (!replyText.trim()) {
+      alert('請輸入給使用者的回覆內容！');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await adminApi.handleFeedback(id, { is_handled: true, admin_reply: replyText });
+      setFeedbacks(feedbacks.map(fb => fb.id === id ? { ...fb, is_handled: true, admin_reply: replyText } : fb));
+      setReplyingFeedbackId(null);
+      setReplyText('');
+      alert('回饋標記完成並已通知使用者！');
+    } catch (error) {
+      console.error('Handle feedback error:', error);
+      alert('處理失敗，請稍後再試。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteFeedback = async (id) => {
+    if (window.confirm('確定要刪除此回饋建議嗎？')) {
+      setIsSubmitting(true);
+      try {
+        await adminApi.deleteFeedback(id);
+        setFeedbacks(feedbacks.filter(fb => fb.id !== id));
+        alert('回饋已刪除。');
+      } catch (error) {
+        console.error('Delete feedback error:', error);
+        alert('刪除失敗，請稍後再試。');
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -904,10 +943,46 @@ function Admin() {
         {/* 使用者回饋 Tab */}
         {activeTab === 'feedbacks' && (
           <div>
-            <h2 style={{ marginBottom: '32px' }}>使用者建議與回饋</h2>
+            <h2 style={{ marginBottom: '24px' }}>使用者建議與回饋</h2>
+            
+            {/* 待處理 vs 已處理 分頁選擇 */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+              <button 
+                onClick={() => setFeedbackFilter('pending')}
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '20px', 
+                  border: '1px solid #cbd5e1', 
+                  backgroundColor: feedbackFilter === 'pending' ? '#7995a5' : 'white', 
+                  color: feedbackFilter === 'pending' ? 'white' : '#475569',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                待處理 ({feedbacks.filter(f => !f.is_handled).length})
+              </button>
+              <button 
+                onClick={() => setFeedbackFilter('handled')}
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '20px', 
+                  border: '1px solid #cbd5e1', 
+                  backgroundColor: feedbackFilter === 'handled' ? '#7995a5' : 'white', 
+                  color: feedbackFilter === 'handled' ? 'white' : '#475569',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                已完成 ({feedbacks.filter(f => f.is_handled).length})
+              </button>
+            </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {feedbacks.filter(f => !f.is_handled).map(f => (
+              {feedbacks.filter(f => feedbackFilter === 'pending' ? !f.is_handled : f.is_handled).map(f => (
                 <div key={f.id} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -930,26 +1005,68 @@ function Admin() {
                       {f.type}
                     </span>
                   </div>
+                  
                   <p style={{ margin: 0, fontSize: '15px', color: '#475569', lineHeight: '1.6', paddingLeft: '52px' }}>
                     {f.content}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '12px', alignItems: 'center' }}>
-                    <button style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} onClick={async () => {
-                      try {
-                        await adminApi.handleFeedback(f.id, { is_handled: true });
-                        setFeedbacks(feedbacks.map(fb => fb.id === f.id ? { ...fb, is_handled: true } : fb));
-                      } catch (error) {
-                        alert('標記失敗');
-                      }
-                    }}>
-                      <CheckCircle size={18} /> 標記完成
+
+                  {/* 如果是已處理，顯示回覆內容 */}
+                  {f.is_handled && (
+                    <div style={{ marginTop: '16px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', borderLeft: '4px solid #10b981', paddingLeft: '20px', marginLeft: '52px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b', marginBottom: '4px' }}>管理者的回覆：</div>
+                      <div style={{ fontSize: '14px', color: '#475569', whiteSpace: 'pre-wrap' }}>{f.admin_reply || '無回覆內容。'}</div>
+                    </div>
+                  )}
+
+                  {/* 填寫回覆區塊 (待處理時展開) */}
+                  {replyingFeedbackId === f.id && (
+                    <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '52px' }}>
+                      <textarea 
+                        placeholder="請輸入給使用者的回覆內容（送出後會自動發送通知給使用者）..."
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        style={{ width: '100%', minHeight: '80px', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', resize: 'none', fontFamily: 'inherit' }}
+                      />
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => { setReplyingFeedbackId(null); setReplyText(''); }} 
+                          style={{ padding: '6px 14px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', color: '#475569' }}
+                        >
+                          取消
+                        </button>
+                        <button 
+                          onClick={() => handleCompleteFeedback(f.id)} 
+                          style={{ padding: '6px 14px', border: 'none', background: '#10b981', color: 'white', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          確認送出並完成
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 控制按鈕區 */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '16px', alignItems: 'center' }}>
+                    {!f.is_handled && replyingFeedbackId !== f.id && (
+                      <button 
+                        style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} 
+                        onClick={() => { setReplyingFeedbackId(f.id); setReplyText(''); }}
+                      >
+                        <MessageSquareText size={18} /> 回覆
+                      </button>
+                    )}
+                    <button 
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700' }} 
+                      onClick={() => handleDeleteFeedback(f.id)}
+                    >
+                      <Trash2 size={18} /> 刪除
                     </button>
                   </div>
                 </div>
               ))}
-              {feedbacks.filter(f => !f.is_handled).length === 0 && (
+              
+              {feedbacks.filter(f => feedbackFilter === 'pending' ? !f.is_handled : f.is_handled).length === 0 && (
                 <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>
-                  目前沒有待處理的回饋。
+                  {feedbackFilter === 'pending' ? '目前沒有待處理的回饋。' : '目前沒有已完成的回饋。'}
                 </div>
               )}
             </div>

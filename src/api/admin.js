@@ -102,6 +102,15 @@ const adminApi = {
   },
 
   /**
+   * 刪除使用者回饋 (限 Admin)
+   * @param {number|string} feedbackId
+   * @returns {Promise}
+   */
+  deleteFeedback: (feedbackId) => {
+    return axiosClient.delete(`/feedback/${feedbackId}/`);
+  },
+
+  /**
    * 上傳圖片至伺服器
    * @param {File} file
    * @returns {Promise}
