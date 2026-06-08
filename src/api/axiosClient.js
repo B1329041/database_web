@@ -2,8 +2,7 @@ import axios from 'axios';
 
 // 建立 Axios 實體
 const axiosClient = axios.create({
-  // baseURL: 'https://spore-easily-detective.ngrok-free.dev/api', // 原本的 ngrok 網址
-  baseURL: 'https://spore-easily-detective.ngrok-free.dev/api', // 本地端測試網址 (自己跑 backend 時用這個)
+  baseURL: 'https://coral-joyride-gallantly.ngrok-free.dev/api',
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true', // 繞過 ngrok 的免費警告頁面

@@ -850,5 +850,19 @@
   box-shadow: 0 10px 25px rgba(229, 205, 205, 0.6);
 }
 
+/* --- Custom Upload Spinner --- */
+.upload-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: uploadSpin 0.8s linear infinite;
+}
+
+@keyframes uploadSpin {
+  to { transform: rotate(360deg); }
+}
+
 
 

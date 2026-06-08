@@ -16,6 +16,14 @@ const usersApi = {
    */
   updateUserProfile: (data) => {
     return axiosClient.put('/users/profile', data);
+  },
+
+  /**
+   * 取得所有使用者清單 (限 Admin)
+   * @returns {Promise}
+   */
+  getAllUsers: () => {
+    return axiosClient.get('/users/');
   }
 };
 

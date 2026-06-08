@@ -61,7 +61,11 @@ function PartyDetail() {
   
   // 判斷當前使用者是否為主揪或已加入
   const currentUserId = parseInt(localStorage.getItem('user_id'));
-  const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || initialParty.participants?.[0]?.name === '主揪人' || (initialParty.participants?.[0]?.id === currentUserId);
+  const isUserHost = initialParty.participants?.[0]?.name === '我 (主揪)' || 
+                     initialParty.participants?.[0]?.name === '主揪人' || 
+                     (initialParty.participants?.[0]?.id === currentUserId) ||
+                     (initialParty.creator_id && String(initialParty.creator_id) === String(currentUserId)) ||
+                     (initialParty.creator && String(initialParty.creator.id || initialParty.creator) === String(currentUserId));
   const initialHasJoined = isUserHost || 
                            initialParty.participants?.some(p => p.name === '我 (使用者)' || p.id === currentUserId) || 
                            initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
@@ -75,6 +79,88 @@ function PartyDetail() {
   // 新增：場地狀態與檢舉功能狀態
   const [isHostView, setIsHostView] = useState(isUserHost); // 根據是否為主揪動態切換
   const [isTimeApproaching, setIsTimeApproaching] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    booking_date: '',
+    start_time: '',
+    duration: '2 小時',
+    price: '',
+    genderLimit: '不限',
+    description: '',
+    venue_note: ''
+  });
+
+  const startEditing = () => {
+    setEditForm({
+      title: party.title || '',
+      booking_date: party.booking_date || '',
+      start_time: party.start_time || '',
+      duration: party.duration || '2 小時',
+      price: party.total_price !== undefined ? party.total_price : (party.price && typeof party.price === 'string' && party.price.includes('分攤') ? party.price.replace(/[^0-9]/g, '') : '0'),
+      genderLimit: party.genderLimit || '不限',
+      description: party.description || '',
+      venue_note: party.venue_note || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+
+    const [startHour, startMin] = editForm.start_time.split(':');
+    const durationHours = parseFloat(editForm.duration);
+    
+    const startDate = new Date(`2000-01-01T${editForm.start_time}:00`);
+    const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+    const endHour = endDate.getHours().toString().padStart(2, '0');
+    const endMin = endDate.getMinutes().toString().padStart(2, '0');
+    const time_slot = `${startHour}:${startMin}-${endHour}:${endMin}`;
+
+    const priceNum = parseFloat(editForm.price) || 0;
+
+    const payload = {
+      game_name: editForm.title,
+      booking_date: editForm.booking_date,
+      start_time: editForm.start_time,
+      time_slot: time_slot,
+      duration: editForm.duration,
+      total_price: priceNum,
+      gender_limit: editForm.genderLimit,
+      description: editForm.description,
+      game_note: editForm.venue_note
+    };
+
+    try {
+      const updatedGame = await gamesApi.updateGame(party.id, payload);
+      
+      const rawType = updatedGame.sport_name || party.type;
+      const rawLevel = updatedGame.target_level || party.level;
+      
+      const formatted = {
+        ...party,
+        ...updatedGame,
+        title: updatedGame.game_name || updatedGame.title || editForm.title,
+        type: rawType,
+        level: rawLevel,
+        genderLimit: updatedGame.gender_limit || editForm.genderLimit,
+        location: updatedGame.venue_name || party.location,
+        description: updatedGame.description || editForm.description,
+        venue_note: updatedGame.game_note || editForm.venue_note,
+        time: updatedGame.booking_date && updatedGame.time_slot ? `${updatedGame.booking_date} ${updatedGame.time_slot}` : `${editForm.booking_date} ${time_slot}`,
+        price: priceNum > 0 ? `總額分攤 ${priceNum}` : '免費',
+        total_price: priceNum
+      };
+      
+      setParty(formatted);
+      setIsEditing(false);
+      showToast('球局內容修改成功！');
+    } catch (error) {
+      console.error('Update game error:', error);
+      alert('修改失敗，請稍後再試！');
+    }
+  };
 
   useEffect(() => {
     if (party?.booking_date && party?.start_time) {
@@ -248,6 +334,133 @@ function PartyDetail() {
   const isFull = party.currentPlayers >= party.maxPlayers;
   const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
   
+  if (isEditing) {
+    return (
+      <div className="home-container">
+        <nav className="navbar">
+          <div className="navbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>不揪ㄛ</div>
+          <div className="navbar-actions">
+            <button className="btn-outline" onClick={() => setIsEditing(false)}>取消編輯</button>
+          </div>
+        </nav>
+
+        <main className="main-content" style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '20px' }}>
+          <div className="detail-card" style={{ padding: '40px', backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+            <h2 style={{ marginBottom: '24px', color: '#1e293b' }}>編輯球局內容</h2>
+            
+            <form onSubmit={handleSaveEdit}>
+              <div className="form-group">
+                <label className="form-label">球局標題</label>
+                <input 
+                  required 
+                  type="text" 
+                  className="form-input" 
+                  value={editForm.title} 
+                  onChange={e => setEditForm({ ...editForm, title: e.target.value })} 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="form-group">
+                  <label className="form-label">活動日期</label>
+                  <input 
+                    required 
+                    type="date" 
+                    className="form-input" 
+                    value={editForm.booking_date} 
+                    onChange={e => setEditForm({ ...editForm, booking_date: e.target.value })} 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">開始時間</label>
+                  <input 
+                    required 
+                    type="time" 
+                    className="form-input" 
+                    value={editForm.start_time} 
+                    onChange={e => setEditForm({ ...editForm, start_time: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="form-group">
+                  <label className="form-label">活動時長</label>
+                  <select 
+                    className="form-input" 
+                    value={editForm.duration} 
+                    onChange={e => setEditForm({ ...editForm, duration: e.target.value })}
+                  >
+                    <option value="1 小時">1 小時</option>
+                    <option value="1.5 小時">1.5 小時</option>
+                    <option value="2 小時">2 小時</option>
+                    <option value="2.5 小時">2.5 小時</option>
+                    <option value="3 小時">3 小時</option>
+                    <option value="4 小時">4 小時</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">性別限制</label>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    {['不限', '限男', '限女'].map(g => (
+                      <button 
+                        key={g}
+                        type="button" 
+                        className={`role-btn ${editForm.genderLimit === g ? 'active' : ''}`} 
+                        style={{ flex: 1, border: '1px solid #e2e8f0', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
+                        onClick={() => setEditForm({ ...editForm, genderLimit: g })}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">場地費用 (總額分攤，填 0 則為免費)</label>
+                <input 
+                  type="number" 
+                  className="form-input" 
+                  placeholder="請輸入總費用"
+                  value={editForm.price} 
+                  onChange={e => setEditForm({ ...editForm, price: e.target.value })} 
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">場地備註 (例如：A場、第3球道)</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="例如：第 2 場地" 
+                  value={editForm.venue_note} 
+                  onChange={e => setEditForm({ ...editForm, venue_note: e.target.value })} 
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">備註與說明</label>
+                <textarea 
+                  className="form-input" 
+                  rows="4" 
+                  value={editForm.description} 
+                  onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                  style={{ resize: 'none' }}
+                ></textarea>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                <button type="button" className="btn-outline" style={{ flex: 1, padding: '12px', borderRadius: '12px' }} onClick={() => setIsEditing(false)}>取消</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px', borderRadius: '12px' }}>儲存修改</button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="home-container">
       <nav className="navbar">
@@ -388,9 +601,14 @@ function PartyDetail() {
             )}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {isHostView ? (
-                <button className="btn-action cancel" style={{ width: '100%' }} onClick={handleDeleteGame}>
-                  取消揪團
-                </button>
+                <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+                  <button className="btn-action join" style={{ flex: 1 }} onClick={startEditing}>
+                    編輯球局
+                  </button>
+                  <button className="btn-action cancel" style={{ flex: 1 }} onClick={handleDeleteGame}>
+                    取消揪團
+                  </button>
+                </div>
               ) : hasJoined ? (
                 <button className="btn-action cancel" onClick={handleCancel}>
                   取消報名

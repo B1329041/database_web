@@ -2,6 +2,14 @@ import axiosClient from './axiosClient';
 
 const gamesApi = {
   /**
+   * 取得運動/球類列表
+   * @returns {Promise}
+   */
+  getSports: () => {
+    return axiosClient.get('/sports');
+  },
+
+  /**
    * 取得球局列表
    * @param {Object} params - Query參數 { region, sport_type, level }
    * @returns {Promise}
@@ -73,6 +81,16 @@ const gamesApi = {
    */
   createAnnouncement: (gameId, data) => {
     return axiosClient.post(`/games/${gameId}/announcements`, data);
+  },
+
+  /**
+   * 主揪修改球局內容
+   * @param {number|string} gameId 
+   * @param {Object} data 
+   * @returns {Promise}
+   */
+  updateGame: (gameId, data) => {
+    return axiosClient.patch(`/games/${gameId}`, data);
   },
 
   /**
