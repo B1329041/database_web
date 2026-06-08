@@ -1,12 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, Pencil, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, Pencil, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
 import adminApi from '../api/admin';
 import venuesApi from '../api/venues';
 import gamesApi from '../api/games';
 import usersApi from '../api/users';
 import SafeImage from '../components/SafeImage';
 import '../App.css';
+
+const getSportBadgeStyle = (sportName) => {
+  switch (sportName) {
+    case '羽球':
+      return { backgroundColor: '#e0f2fe', color: '#0369a1', borderColor: '#bae6fd' };
+    case '籃球':
+      return { backgroundColor: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' };
+    case '網球':
+      return { backgroundColor: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0' };
+    case '桌球':
+      return { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#fecaca' };
+    case '排球':
+      return { backgroundColor: '#faf5ff', color: '#6b21a8', borderColor: '#f3e8ff' };
+    default:
+      return { backgroundColor: '#f1f5f9', color: '#475569', borderColor: '#e2e8f0' };
+  }
+};
 
 function Admin() {
   const navigate = useNavigate();
@@ -37,6 +54,11 @@ function Admin() {
   const [feedbackFilter, setFeedbackFilter] = useState('pending'); // 'pending' or 'handled'
   const [replyingFeedbackId, setReplyingFeedbackId] = useState(null);
   const [replyText, setReplyText] = useState('');
+  const [editingGameTimeId, setEditingGameTimeId] = useState(null);
+  const [editGameDate, setEditGameDate] = useState('');
+  const [editGameTimeSlot, setEditGameTimeSlot] = useState('');
+  const [demoSearchQuery, setDemoSearchQuery] = useState('');
+  const [demoSportFilter, setDemoSportFilter] = useState('全部');
   const [filterCity, setFilterCity] = useState('');
   const [filterDistrict, setFilterDistrict] = useState('');
   const [users, setUsers] = useState([]);
@@ -197,15 +219,33 @@ function Admin() {
 
       // 5. 獨立載入真實球局 (Demo 工具用)
       try {
+        let sportsListForMapping = sportsList;
+        if (sportsListForMapping.length === 0) {
+          try {
+            const sportsData = await gamesApi.getSports();
+            sportsListForMapping = sportsData || [];
+            setSportsList(sportsListForMapping);
+          } catch (err) {
+            console.error('Fetch sports in games load error:', err);
+          }
+        }
+
         const gamesData = await gamesApi.getGames();
         const rawGames = Array.isArray(gamesData) ? gamesData : (gamesData.results || []);
-        const mappedParties = rawGames.map(g => ({
-          id: g.id,
-          title: g.game_name || g.title || '無標題',
-          status: g.match_status || '招募中',
-          time: `${g.booking_date || ''} ${g.time_slot || ''}`,
-          location: g.venue_name || '未指定地點'
-        }));
+        console.log('Demo Tool - rawGames:', rawGames);
+        const mappedParties = rawGames.map(g => {
+          const sObj = sportsListForMapping.find(s => String(s.id) === String(g.sport_id));
+          const nameVal = sObj ? sObj.name : (g.sport_name || '未分類');
+          return {
+            id: g.id,
+            title: g.game_name || g.title || '無標題',
+            status: g.match_status || '招募中',
+            time: `${g.booking_date || ''} ${g.time_slot || ''}`,
+            location: g.venue_name || '未指定地點',
+            sportName: nameVal
+          };
+        });
+        console.log('Demo Tool - mappedParties:', mappedParties);
         setParties(mappedParties);
       } catch (error) {
         console.error('Fetch games error:', error);
@@ -452,6 +492,60 @@ function Admin() {
       } finally {
         setIsSubmitting(false);
       }
+    }
+  };
+
+  const handleUpdateGameTime = async (id) => {
+    if (!editGameDate || !editGameTimeSlot.trim()) {
+      alert('請填寫日期與時段！');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await adminApi.updateDemoGameStatus(id, { 
+        booking_date: editGameDate, 
+        time_slot: editGameTimeSlot 
+      });
+      setParties(parties.map(p => p.id === id ? { ...p, time: `${editGameDate} ${editGameTimeSlot}` } : p));
+      setEditingGameTimeId(null);
+      alert('球局時間已成功修改！');
+    } catch (error) {
+      console.error('Update game time error:', error);
+      alert('修改時間失敗，請確認伺服器狀態。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSetTimeBefore30Min = async (id) => {
+    setIsSubmitting(true);
+    try {
+      const targetTime = new Date(Date.now() + 30 * 60 * 1000);
+      const year = targetTime.getFullYear();
+      const month = String(targetTime.getMonth() + 1).padStart(2, '0');
+      const day = String(targetTime.getDate()).padStart(2, '0');
+      const bookingDate = `${year}-${month}-${day}`;
+
+      const startHours = String(targetTime.getHours()).padStart(2, '0');
+      const startMinutes = String(targetTime.getMinutes()).padStart(2, '0');
+
+      const endTargetTime = new Date(targetTime.getTime() + 2 * 60 * 60 * 1000);
+      const endHours = String(endTargetTime.getHours()).padStart(2, '0');
+      const endMinutes = String(endTargetTime.getMinutes()).padStart(2, '0');
+
+      const timeSlot = `${startHours}:${startMinutes}-${endHours}:${endMinutes}`;
+
+      await adminApi.updateDemoGameStatus(id, { 
+        booking_date: bookingDate, 
+        time_slot: timeSlot 
+      });
+      setParties(parties.map(p => p.id === id ? { ...p, time: `${bookingDate} ${timeSlot}` } : p));
+      alert(`已成功設定球局時間為開局前 30 分鐘 (${bookingDate} ${timeSlot})！`);
+    } catch (error) {
+      console.error('Set time before 30min error:', error);
+      alert('設定開局前 30 分鐘失敗，請確認伺服器狀態。');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1079,36 +1173,210 @@ function Admin() {
             <h2 style={{ marginBottom: '8px', color: '#b45309' }}>🛠️ Demo 展示工具箱</h2>
             <p style={{ color: '#64748b', marginBottom: '32px' }}>這些功能僅供開發與展示使用，可快速改變系統狀態以利 Demo。</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', alignItems: 'start' }}>
               
               {/* 房間狀態控制 */}
-              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #fcd34d' }}>
-                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #fcd34d', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <MapPinned size={20} color="#b45309" /> 快速調整房間狀態
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {parties.map(p => (
-                    <div key={p.id} style={{ padding: '16px', backgroundColor: '#fffbeb', borderRadius: '12px', border: '1px solid #fef3c7' }}>
-                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>{p.title}</div>
-                      <div style={{ fontSize: '12px', color: '#b45309', marginBottom: '12px' }}>
-                        目前狀態：<span style={{ fontWeight: '800' }}>{p.status}</span> ({p.time})
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '即將開始', '10 分鐘後')}>
-                          即將開始
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '已開始', '進行中')}>
-                          已開始
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px', borderColor: '#fcd34d' }} onClick={() => handleUpdatePartyStatus(p.id, '已結束', '昨天')}>
-                          已結束
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }} onClick={() => handleUpdatePartyStatus(p.id, '招募中', '今日 20:00')}>
-                          還原
-                        </button>
-                      </div>
+
+                {/* 搜尋與篩選列 */}
+                <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* 搜尋框 */}
+                  <div style={{ display: 'flex', position: 'relative', alignItems: 'center' }}>
+                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px' }} />
+                    <input 
+                      type="text" 
+                      placeholder="搜尋房間名稱或場地..." 
+                      value={demoSearchQuery}
+                      onChange={e => setDemoSearchQuery(e.target.value)}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px 8px 36px', 
+                        borderRadius: '8px', 
+                        border: '1px solid #cbd5e1', 
+                        fontSize: '13px', 
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                      }}
+                      onFocus={e => e.target.style.borderColor = '#d97706'}
+                      onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                    />
+                  </div>
+
+                  {/* 球類分類選擇器 */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', marginRight: '4px' }}>球類篩選:</span>
+                    {['全部', ...sportsList.map(sport => sport.name).filter(Boolean)].map(sport => (
+                      <button
+                        key={sport}
+                        onClick={() => setDemoSportFilter(sport)}
+                        style={{
+                          padding: '3px 10px',
+                          borderRadius: '20px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          border: '1px solid',
+                          backgroundColor: demoSportFilter === sport ? '#d97706' : '#f1f5f9',
+                          color: demoSportFilter === sport ? 'white' : '#475569',
+                          borderColor: demoSportFilter === sport ? '#d97706' : '#e2e8f0',
+                        }}
+                      >
+                        {sport}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 房間卡片列表 */}
+                <div 
+                  className="demo-parties-list"
+                  style={{ 
+                    maxHeight: '520px', 
+                    overflowY: 'auto', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '12px', 
+                    paddingRight: '6px',
+                    scrollbarWidth: 'thin'
+                  }}
+                >
+                  {parties
+                    .filter(p => {
+                      const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
+                      const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
+                                            p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
+                      return matchesSport && matchesSearch;
+                    })
+                    .map(p => {
+                      const badgeStyle = getSportBadgeStyle(p.sportName);
+                      return (
+                        <div 
+                          key={p.id} 
+                          style={{ 
+                            padding: '16px', 
+                            backgroundColor: '#ffffff', 
+                            borderRadius: '12px', 
+                            border: '1px solid #e2e8f0',
+                            borderLeft: `4px solid ${badgeStyle.borderColor || '#cbd5e1'}`,
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px', gap: '8px' }}>
+                            <div style={{ fontWeight: '700', fontSize: '14px', color: '#1e293b', lineHeight: '1.4' }}>{p.title}</div>
+                            <span style={{ 
+                              padding: '2px 8px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px', 
+                              fontWeight: '700',
+                              border: '1px solid',
+                              whiteSpace: 'nowrap',
+                              ...badgeStyle
+                            }}>
+                              {p.sportName}
+                            </span>
+                          </div>
+                          
+                          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#475569' }}>
+                              <span style={{ fontWeight: '600' }}>📍 {p.location}</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                              <span>狀態：</span>
+                              <span style={{ 
+                                fontWeight: '800', 
+                                color: p.status === '已結束' ? '#ef4444' : p.status === '已開始' ? '#10b981' : '#f59e0b',
+                                backgroundColor: p.status === '已結束' ? '#fef2f2' : p.status === '已開始' ? '#f0fdf4' : '#fffbeb',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '11px'
+                              }}>
+                                {p.status}
+                              </span>
+                              <span style={{ marginLeft: '4px', color: '#94a3b8' }}>({p.time})</span>
+                              {editingGameTimeId !== p.id && (
+                                <button 
+                                  onClick={() => {
+                                    setEditingGameTimeId(p.id);
+                                    const parts = p.time.split(' ');
+                                    setEditGameDate(parts[0] || '');
+                                    setEditGameTimeSlot(parts[1] || '');
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', fontSize: '11px', padding: 0, marginLeft: '8px', textDecoration: 'underline' }}
+                                >
+                                  修改時間
+                                </button>
+                              )}
+                            </div>
+
+                            {/* 修改時間輸入區 */}
+                            {editingGameTimeId === p.id && (
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                <input 
+                                  type="date" 
+                                  value={editGameDate} 
+                                  onChange={e => setEditGameDate(e.target.value)} 
+                                  style={{ padding: '3px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', outline: 'none' }}
+                                />
+                                <input 
+                                  type="text" 
+                                  value={editGameTimeSlot} 
+                                  placeholder="例如 14:00-16:00"
+                                  onChange={e => setEditGameTimeSlot(e.target.value)} 
+                                  style={{ padding: '3px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', width: '110px', outline: 'none' }}
+                                />
+                                <button 
+                                  onClick={() => handleUpdateGameTime(p.id)}
+                                  style={{ padding: '3px 8px', backgroundColor: '#7995a5', color: 'white', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  儲存
+                                </button>
+                                <button 
+                                  onClick={() => setEditingGameTimeId(null)}
+                                  style={{ padding: '3px 8px', backgroundColor: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                                >
+                                  取消
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '即將開始', '10 分鐘後')}>
+                              招募中
+                            </button>
+                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '已開始', '進行中')}>
+                              已開始
+                            </button>
+                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '已結束', '昨天')}>
+                              已結束
+                            </button>
+                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '招募中', '今日 20:00')}>
+                              還原
+                            </button>
+                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', borderColor: '#cbd5e1', color: '#64748b' }} onClick={() => handleSetTimeBefore30Min(p.id)}>
+                              B4 30MIN
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  {parties.filter(p => {
+                    const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
+                    const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
+                                          p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
+                    return matchesSport && matchesSearch;
+                  }).length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '13px' }}>
+                      沒有符合搜尋與篩選條件的房間。
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -1161,6 +1429,18 @@ function Admin() {
                           90 (恢復正常)
                         </button>
                       </div>
+
+                      <button 
+                        className="btn-outline" 
+                        style={{ width: '100%', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: '#64748b', color: '#64748b' }} 
+                        onClick={() => {
+                          setUsers(users.map(u => ({ ...u, reputation: 90 })));
+                          setSelectedUser({ ...selectedUser, reputation: 90 });
+                          alert('系統已重置為初始狀態');
+                        }}
+                      >
+                        <RefreshCcw size={14} /> 重置所有 Demo 數據
+                      </button>
                     </>
                   )}
                   {!selectedUser && (
@@ -1168,47 +1448,6 @@ function Admin() {
                       目前無玩家資料
                     </div>
                   )}
-                </div>
-
-                {/* 天氣/系統狀態控制 */}
-                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CloudRain size={20} color="#7995a5" /> 運動適合指數 (天氣系統)
-                  </h3>
-                  <div style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700' }}>適合程度</span>
-                      <span style={{ fontSize: '16px', fontWeight: '800', color: weatherIndex > 50 ? '#10b981' : '#ef4444' }}>{weatherIndex}%</span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      value={weatherIndex} 
-                      onChange={async (e) => {
-                        const val = parseInt(e.target.value, 10);
-                        setWeatherIndex(val);
-                        try {
-                          await adminApi.updateDemoWeather({ value: val });
-                        } catch (error) {
-                          console.error('Update weather error:', error);
-                        }
-                      }}
-                      style={{ width: '100%', cursor: 'pointer', accentColor: '#7995a5' }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                      <span>0% (暴雨危險)</span>
-                      <span>100% (晴朗舒適)</span>
-                    </div>
-                  </div>
-                  <button className="btn-outline" style={{ width: '100%' }} onClick={() => {
-                    setUsers(users.map(u => ({ ...u, reputation: 90 })));
-                    setSelectedUser({ ...selectedUser, reputation: 90 });
-                    setWeatherIndex(80);
-                    alert('系統已重置為初始狀態');
-                  }}>
-                    <RefreshCcw size={16} /> 重置所有 Demo 數據
-                  </button>
                 </div>
 
               </div>
