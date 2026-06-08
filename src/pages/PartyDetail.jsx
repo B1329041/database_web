@@ -81,6 +81,36 @@ function PartyDetail() {
   }, [location.state, defaultParty]);
 
   const [party, setParty] = useState(initialParty);
+
+  // 一進來就去後端拿最新的這筆球局資料，以防 location.state 的資料過舊（例如場地已確認但 state 沒更新）
+  useEffect(() => {
+    // 簡單判斷是否為真實後端 ID (通常會大於 10 或不是 mock ID)
+    if (!id || id === '1' || id === '2' || id === '3') return;
+    const fetchFreshParty = async () => {
+      try {
+        const freshData = await gamesApi.getGameById(id);
+        if (freshData) {
+          let venueStatus = 'pending';
+          if (freshData.booking_status === '已確認/已預約' || freshData.booking_status === '已預約/已確認' || freshData.booking_status === 'confirmed' || freshData.game_note === 'CONFIRMED') {
+            venueStatus = 'confirmed';
+          } else if (freshData.booking_status === '未借到場地' || freshData.booking_status === 'failed' || freshData.game_note === 'FAILED') {
+            venueStatus = 'failed';
+          }
+          
+          setParty(prev => ({
+            ...prev,
+            ...freshData,
+            venueStatus,
+            booking_status: freshData.booking_status,
+            game_note: freshData.game_note
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch fresh party data:", err);
+      }
+    };
+    fetchFreshParty();
+  }, [id]);
   
   // 判斷當前使用者是否為主揪或已加入
   const currentUserId = parseInt(localStorage.getItem('user_id'));
