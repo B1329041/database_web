@@ -44,7 +44,7 @@ const adminApi = {
    * @returns {Promise}
    */
   createSystemAnnouncement: (data) => {
-    return axiosClient.post('/admin/announcements', data);
+    return axiosClient.post('/admin/announcements/', data);
   },
 
   /**
@@ -52,7 +52,26 @@ const adminApi = {
    * @returns {Promise}
    */
   getSystemAnnouncements: () => {
-    return axiosClient.get('/announcements');
+    return axiosClient.get('/announcements/');
+  },
+
+  /**
+   * 編輯系統公告 (限 Admin)
+   * @param {number|string} id
+   * @param {Object} data
+   * @returns {Promise}
+   */
+  updateSystemAnnouncement: (id, data) => {
+    return axiosClient.patch(`/announcements/${id}/`, data);
+  },
+
+  /**
+   * 刪除系統公告 (限 Admin)
+   * @param {number|string} id 
+   * @returns {Promise}
+   */
+  deleteSystemAnnouncement: (id) => {
+    return axiosClient.delete(`/announcements/${id}/`);
   },
 
   /**
@@ -80,6 +99,30 @@ const adminApi = {
    */
   updateDemoWeather: (data) => {
     return axiosClient.patch(`/admin/demo/weather`, data);
+  },
+
+  /**
+   * 刪除使用者回饋 (限 Admin)
+   * @param {number|string} feedbackId
+   * @returns {Promise}
+   */
+  deleteFeedback: (feedbackId) => {
+    return axiosClient.delete(`/feedback/${feedbackId}/`);
+  },
+
+  /**
+   * 上傳圖片至伺服器
+   * @param {File} file
+   * @returns {Promise}
+   */
+  uploadImage: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axiosClient.post('/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
   }
 };
 

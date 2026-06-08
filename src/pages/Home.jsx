@@ -7,6 +7,7 @@ import weatherApi from '../api/weather';
 import adminApi from '../api/admin';
 import usersApi from '../api/users';
 import venuesApi from '../api/venues';
+import SafeImage from '../components/SafeImage';
 import '../App.css';
 
 function Home() {
@@ -18,7 +19,9 @@ function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAqiInfo, setShowAqiInfo] = useState(false);
   const [showLevelInfo, setShowLevelInfo] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [systemAnnouncements, setSystemAnnouncements] = useState([]);
   const [aqi, setAqi] = useState('--');
   const [temperature, setTemperature] = useState('--');
   const [weatherLocation, setWeatherLocation] = useState('桃園市');
@@ -43,7 +46,8 @@ function Home() {
           notificationsApi.getNotifications(),
           weatherApi.getWeatherAqi(),
           usersApi.getUserProfile(),
-          venuesApi.getCourts()
+          venuesApi.getCourts(),
+          adminApi.getSystemAnnouncements()
         ]);
         
         const gamesResult = results[0].status === 'fulfilled' ? results[0].value : [];
@@ -51,6 +55,10 @@ function Home() {
         const weatherResult = results[2].status === 'fulfilled' ? results[2].value : {};
         const userProfileResult = results[3].status === 'fulfilled' ? results[3].value : null;
         const venuesResult = results[4].status === 'fulfilled' ? results[4].value : [];
+        const announcementsResult = results[5]?.status === 'fulfilled' ? results[5].value : [];
+        
+        const rawAnnouncements = Array.isArray(announcementsResult) ? announcementsResult : (announcementsResult.results || []);
+        setSystemAnnouncements(rawAnnouncements);
         
         if (userProfileResult) {
           setUserProfile(userProfileResult);
@@ -411,6 +419,81 @@ function Home() {
     });
   };
 
+  const renderModalContent = () => {
+    if (!selectedAnnouncement) return null;
+    const content = selectedAnnouncement.content;
+    
+    // 1. 新的結構化格式
+    if (selectedAnnouncement.title === '系統通知' && content.includes('[Feedback]\n') && content.includes('[Reply]\n')) {
+      const parts = content.split('\n');
+      const feedbackHeaderIdx = parts.indexOf('[Feedback]');
+      const replyHeaderIdx = parts.indexOf('[Reply]');
+      
+      let feedbackText = '';
+      let replyText = '';
+      
+      if (feedbackHeaderIdx !== -1 && replyHeaderIdx !== -1) {
+        feedbackText = parts.slice(feedbackHeaderIdx + 1, replyHeaderIdx).join('\n').trim();
+        replyText = parts.slice(replyHeaderIdx + 1).join('\n').trim();
+      } else {
+        return <div style={{ whiteSpace: 'pre-wrap' }}>{content}</div>;
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', marginTop: '10px' }}>
+          <div style={{ padding: '14px 18px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>您的意見回饋：</div>
+            <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{feedbackText}</div>
+          </div>
+          <div style={{ padding: '14px 18px', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', borderLeft: '4px solid #22c55e' }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#166534', marginBottom: '6px' }}>
+              💬 管理員回覆：
+            </div>
+            <div style={{ fontSize: '14px', color: '#14532d', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontWeight: '500' }}>{replyText}</div>
+          </div>
+        </div>
+      );
+    }
+    
+    // 2. 舊的單行格式 (相容先前產生的舊資料)
+    if (selectedAnnouncement.title === '系統通知' && content.startsWith('【回饋處理通知】') && content.includes('管理員回覆：')) {
+      const cleanContent = content.replace('【回饋處理通知】', '').trim();
+      const replyPrefix = '管理員回覆：';
+      const prefixIndex = cleanContent.indexOf(replyPrefix);
+      
+      let infoText = '';
+      let replyText = '';
+      
+      if (prefixIndex !== -1) {
+        infoText = cleanContent.substring(0, prefixIndex).trim();
+        replyText = cleanContent.substring(prefixIndex + replyPrefix.length).trim();
+      } else {
+        infoText = cleanContent;
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', marginTop: '10px' }}>
+          {infoText && (
+            <div style={{ padding: '14px 18px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>處理狀態：</div>
+              <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.5' }}>{infoText}</div>
+            </div>
+          )}
+          {replyText && (
+            <div style={{ padding: '14px 18px', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', borderLeft: '4px solid #22c55e' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#166534', marginBottom: '6px' }}>
+                💬 管理員回覆：
+              </div>
+              <div style={{ fontSize: '14px', color: '#14532d', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontWeight: '500' }}>{replyText}</div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    return <div style={{ whiteSpace: 'pre-wrap' }}>{content}</div>;
+  };
+
   return (
     <div className="home-container">
       {/* 導覽列 */}
@@ -454,7 +537,7 @@ function Home() {
                     notifications.map(n => (
                       <div 
                         key={n.id} 
-                        style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
+                        style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff', alignItems: 'center' }}
                         onClick={async () => {
                           if (!n.read) {
                             try {
@@ -462,15 +545,86 @@ function Home() {
                             } catch (e) { console.error('Failed to mark as read', e); }
                           }
                           setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
+                          
+                          // 處理點擊通知以彈窗展開
+                          if (n.text) {
+                            if (n.text.includes('【系統公告】')) {
+                              const refMatch = n.text.match(/\(Ref:\s*#(\d+)\)/);
+                              let title = '系統公告';
+                              let content = n.text.replace('【系統公告】', '');
+                              let photos = [];
+                              
+                              if (refMatch) {
+                                const announcementId = Number(refMatch[1]);
+                                const found = systemAnnouncements.find(a => a.id === announcementId);
+                                if (found) {
+                                  title = found.title;
+                                  content = found.content;
+                                  photos = found.photo || [];
+                                }
+                              } else {
+                                const cleanText = n.text.replace('【系統公告】', '');
+                                const colonIndex = cleanText.indexOf('：');
+                                if (colonIndex !== -1) {
+                                  title = cleanText.substring(0, colonIndex).trim();
+                                  content = cleanText.substring(colonIndex + 1).trim();
+                                }
+                              }
+                              setSelectedAnnouncement({ title, content, time: n.time, photos });
+                            } else {
+                              // 其他所有通知也支援以「系統通知」彈窗展開，方便查閱完整回覆
+                              setSelectedAnnouncement({ 
+                                title: '系統通知', 
+                                content: n.text, 
+                                time: n.time, 
+                                photos: [] 
+                              });
+                            }
+                          }
                         }}
                       >
-                        <div style={{ width: '8px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
+                        <div style={{ width: '8px', display: 'flex', justifyContent: 'center' }}>
                           {!n.read && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }}></div>}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>{n.text}</p>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: n.read ? '#64748b' : '#0f172a', lineHeight: '1.4' }}>
+                            {n.text.startsWith('【回饋處理通知】') ? '【回饋處理通知】' : (n.text.includes('\n') ? n.text.split('\n')[0] : n.text)}
+                          </p>
                           <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{n.time}</p>
                         </div>
+                        {/* 已讀後顯示刪除通知按鈕 */}
+                        {n.read && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation(); // 阻止觸發外層已讀與彈窗事件
+                              if (window.confirm('確定要刪除此通知嗎？')) {
+                                try {
+                                  await notificationsApi.deleteNotification(n.id);
+                                  setNotifications(notifications.filter(item => item.id !== n.id));
+                                } catch (err) {
+                                  console.error('Failed to delete notification', err);
+                                  alert('刪除通知失敗，請稍後再試。');
+                                }
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#94a3b8',
+                              cursor: 'pointer',
+                              fontSize: '18px',
+                              fontWeight: 'normal',
+                              padding: '4px 8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginLeft: 'auto'
+                            }}
+                            title="刪除通知"
+                          >
+                            &times;
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -910,6 +1064,35 @@ function Home() {
               </div>
               <button type="submit" className="login-button" style={{ marginTop: '10px' }}>送出回饋</button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* 系統公告彈窗 Modal */}
+      {selectedAnnouncement && (
+        <div className="modal-overlay" onClick={() => setSelectedAnnouncement(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                📢 {selectedAnnouncement.title}
+              </h3>
+              <button className="modal-close" onClick={() => setSelectedAnnouncement(null)}>×</button>
+            </div>
+            <div style={{ maxHeight: '300px', overflowY: 'auto', color: '#475569', fontSize: '15px', lineHeight: '1.6', margin: '20px 0', paddingRight: '8px', textAlign: 'left' }}>
+              {renderModalContent()}
+              {selectedAnnouncement.photos && selectedAnnouncement.photos.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                  {selectedAnnouncement.photos.map((p, idx) => (
+                    <SafeImage key={idx} src={p} alt={`Announcement Photo ${idx+1}`} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>發布時間：{selectedAnnouncement.time}</span>
+              <button className="btn-primary" onClick={() => setSelectedAnnouncement(null)} style={{ padding: '6px 16px', fontSize: '14px', margin: 0 }}>
+                關閉
+              </button>
+            </div>
           </div>
         </div>
       )}

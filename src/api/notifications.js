@@ -16,6 +16,15 @@ const notificationsApi = {
    */
   markAsRead: (notificationId) => {
     return axiosClient.patch(`/notifications/${notificationId}/read`);
+  },
+
+  /**
+   * 刪除通知
+   * @param {number|string} notificationId 
+   * @returns {Promise}
+   */
+  deleteNotification: (notificationId) => {
+    return axiosClient.delete(`/notifications/${notificationId}/`);
   }
 };
 
