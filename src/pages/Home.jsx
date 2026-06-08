@@ -330,9 +330,12 @@ function Home() {
       '麻將': 'Mahjohn',
       '桌球': 'Table Tennis'
     };
-    const dbSportName = sportMap[newParty.type] || newParty.type;
+    const dbSportName = (sportMap[newParty.type] || newParty.type).toLowerCase();
 
-    const filteredVenues = allVenues.filter(v => v.sports.includes(dbSportName) || v.sports.length === 0); // 若場地無標示運動也可顯示，或可拿掉此條件
+    const filteredVenues = allVenues.filter(v => 
+      v.sports.some(s => s.toLowerCase() === dbSportName || s.toLowerCase() === newParty.type.toLowerCase()) || 
+      v.sports.length === 0
+    );
     
     // 若該運動目前無可用場地，給個防呆
     if (filteredVenues.length === 0) {
