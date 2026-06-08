@@ -554,7 +554,6 @@ function Home() {
             </div>
           </div>
         </div>
-
         {/* 卡片列表 */}
         <div className="party-grid">
           {parties
@@ -582,6 +581,16 @@ function Home() {
               return 0;
             })
             .map(party => {
+            const currentUserId = localStorage.getItem('user_id');
+            const isHost = currentUserId && (
+              (party.creator_id && String(party.creator_id) === String(currentUserId)) || 
+              (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
+              party.participants?.[0] === '我 (主揪)' || 
+              party.participants?.[0] === '主揪人' ||
+              (party.user_id && String(party.user_id) === String(currentUserId))
+            );
+            const isParticipant = currentUserId && party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
 
@@ -633,14 +642,7 @@ function Home() {
               }
             }
 
-            const currentUserId = localStorage.getItem('user_id');
-            const isHost = currentUserId && (
-              (party.creator_id && String(party.creator_id) === String(currentUserId)) || 
-              (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
-              party.participants?.[0] === '我 (主揪)' || 
-              party.participants?.[0] === '主揪人' ||
-              (party.user_id && String(party.user_id) === String(currentUserId))
-            );
+
 
             return (
               <div key={party.id} className={`party-card clickable-card ${isHost ? 'hosted-party' : ''}`} onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
@@ -679,7 +681,7 @@ function Home() {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
                   }}>
-                    {isHost ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                    {isHost ? '管理' : isParticipant ? '已報名' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
                   </button>
                 </div>
               </div>
