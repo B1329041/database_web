@@ -21,6 +21,7 @@ function Home() {
   const [notifications, setNotifications] = useState([]);
   const [aqi, setAqi] = useState('--');
   const [temperature, setTemperature] = useState('--');
+  const [weatherLocation, setWeatherLocation] = useState('桃園市');
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
 
@@ -150,6 +151,7 @@ function Home() {
         setNotifications(validNotifications);
         setAqi(weatherResult?.aqi ?? '--');
         setTemperature(weatherResult?.temperature ?? '--');
+        if (weatherResult?.location) setWeatherLocation(weatherResult.location);
       } catch (error) {
         console.error('Home fetchData error:', error);
       } finally {
@@ -492,7 +494,7 @@ function Home() {
             <h2 style={{ marginBottom: 0 }}>揪團大廳</h2>
             <div className="weather-widget">
               <span className="weather-icon" style={{ display: 'flex' }}><CloudSun size={18} /></span>
-              <span>桃園市 {temperature === '--' ? '--' : `${temperature}°C`}</span>
+              <span>{weatherLocation} {temperature === '--' ? '--' : `${temperature}°C`}</span>
               <div 
                 style={{ position: 'relative', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid #cbd5e1', color: '#64748b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
                 onMouseEnter={() => setShowAqiInfo(true)}
