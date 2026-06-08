@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cake, MapPin, Clock, Phone, Camera, HelpCircle, X } from 'lucide-react';
+import { Cake, MapPin, Clock, Phone, Camera, HelpCircle, X, Star } from 'lucide-react';
 import usersApi from '../api/users';
+import gamesApi from '../api/games';
 import '../App.css';
 
 function Profile() {
@@ -23,6 +24,7 @@ function Profile() {
     avatar: ''
   });
   const [reputation, setReputation] = useState({ score: 100, label: '優良玩家，從不爽約！' });
+  const [myParties, setMyParties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -50,6 +52,42 @@ function Profile() {
             label: data.credit_point >= 80 ? '優良玩家，從不爽約！' : '請注意您的信譽積分' 
           });
         }
+
+        try {
+          const gamesData = await gamesApi.getGames();
+          const rawGames = Array.isArray(gamesData.results) ? gamesData.results : (Array.isArray(gamesData) ? gamesData : []);
+          const currentUserId = localStorage.getItem('user_id');
+          
+          const userGames = rawGames.filter(party => {
+            const isHost = party.creator_id && String(party.creator_id) === String(currentUserId);
+            const isParticipant = party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+            return isHost || isParticipant;
+          }).map(newGame => {
+            const rawType = newGame.type || newGame.sport_type || newGame.sport_name || (newGame.sport?.name) || '未分類';
+            const rawLevel = newGame.level || newGame.target_level || 'C';
+            return {
+              ...newGame,
+              id: newGame.id,
+              title: newGame.title || newGame.game_name || newGame.description?.substring(0, 10) || '無標題',
+              type: rawType,
+              level: rawLevel,
+              genderLimit: newGame.genderLimit || newGame.gender_limit || '不限',
+              location: newGame.location || newGame.venue_name || '未指定地點',
+              description: newGame.description || newGame.game_note || '',
+              venue_note: newGame.venue_note || newGame.game_note || '',
+              currentWaitlist: newGame.currentWaitlist ?? newGame.current_waitlist ?? 0,
+              maxWaitlist: newGame.maxWaitlist ?? newGame.max_waitlist ?? 2,
+              currentPlayers: newGame.currentPlayers ?? newGame.current_players ?? 0,
+              maxPlayers: newGame.maxPlayers ?? newGame.most_players ?? newGame.max_players ?? 6,
+              participants: newGame.participants || [],
+              time: newGame.time || (newGame.booking_date && newGame.start_time ? `${newGame.booking_date} ${newGame.start_time}` : '時間未定'),
+            };
+          });
+          setMyParties(userGames);
+        } catch (e) {
+          console.error('Failed to fetch user games:', e);
+        }
+
       } catch (error) {
         console.error('Fetch profile error:', error);
       } finally {
@@ -338,8 +376,112 @@ function Profile() {
               <h2>我的揪團紀錄</h2>
             </div>
             
-            <div className="party-grid" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: '#94a3b8', fontSize: '15px' }}>目前尚無揪團紀錄</p>
+            <div className="party-grid" style={{ minHeight: '200px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {myParties.length > 0 ? (
+                myParties.map(party => {
+                  const currentUserId = localStorage.getItem('user_id');
+                  const isHost = currentUserId && (
+                    (party.creator_id && String(party.creator_id) === String(currentUserId)) || 
+                    (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
+                    party.participants?.[0] === '我 (主揪)' || 
+                    party.participants?.[0] === '主揪人' ||
+                    (party.user_id && String(party.user_id) === String(currentUserId))
+                  );
+
+                  const isFull = party.currentPlayers >= party.maxPlayers;
+                  const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
+
+                  let statusText = `缺 ${party.maxPlayers - party.currentPlayers} 人`;
+                  let statusColor = '#ef4444'; // Red
+                  if (isFull && isWaitlistFull) {
+                    statusText = '已完全額滿';
+                    statusColor = '#94a3b8'; // Gray
+                  } else if (isFull) {
+                    statusText = `候補 ${party.currentWaitlist}/${party.maxWaitlist}`;
+                    statusColor = '#f59e0b'; // Orange
+                  }
+
+                  let badgeStatusText = '';
+                  let badgeStatusColor = '';
+
+                  const backendStatus = party.match_status || party.status || party.game_status;
+                  
+                  if (backendStatus === '已開始' || backendStatus === 'started' || backendStatus === 'playing') {
+                    badgeStatusText = '已開始';
+                    badgeStatusColor = '#10b981'; // Green
+                  } else if (backendStatus === '已關閉' || backendStatus === 'closed' || backendStatus === 'failed_to_start') {
+                    badgeStatusText = '已關閉';
+                    badgeStatusColor = '#64748b'; // Gray
+                  } else if (backendStatus === '已滿' || backendStatus === 'full') {
+                    badgeStatusText = '已滿';
+                    badgeStatusColor = '#94a3b8'; // Gray
+                  } else if (backendStatus === '可候補' || backendStatus === 'waitlisting') {
+                    badgeStatusText = '可候補';
+                    badgeStatusColor = '#f59e0b'; // Orange
+                  } else if (backendStatus === '缺人' || backendStatus === 'recruiting') {
+                    badgeStatusText = '缺人';
+                    badgeStatusColor = '#ef4444'; // Red
+                  } else {
+                    if (isFull && isWaitlistFull) {
+                      badgeStatusText = '已滿';
+                      badgeStatusColor = '#94a3b8';
+                    } else if (isFull) {
+                      badgeStatusText = '可候補';
+                      badgeStatusColor = '#f59e0b';
+                    } else {
+                      badgeStatusText = '缺人';
+                      badgeStatusColor = '#ef4444';
+                    }
+                  }
+
+                  return (
+                    <div key={party.id} className={`party-card clickable-card ${isHost ? 'hosted-party' : ''}`} onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
+                      <div className="party-card-header">
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          {isHost && (
+                            <Star size={20} fill="#d8a7a7" color="#d8a7a7" style={{ marginRight: '4px' }} />
+                          )}
+                          <span className="party-type">{party.type}</span>
+                          <span className="party-level">{party.level}</span>
+                          {party.genderLimit && party.genderLimit !== '不限' && (
+                            <span className="party-level">{party.genderLimit}</span>
+                          )}
+                          {badgeStatusText && (
+                            <span className="party-level" style={{ backgroundColor: badgeStatusColor, color: 'white', fontWeight: 'bold' }}>
+                              {badgeStatusText}
+                            </span>
+                          )}
+                        </div>
+                        {badgeStatusText !== '已關閉' && (
+                          <span className="party-status" style={{ color: statusColor }}>{statusText}</span>
+                        )}
+                      </div>
+                      <h3 className="party-title">{party.title}</h3>
+                      <div className="party-info">
+                        <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}{party.venue_note ? ` (${party.venue_note})` : ''}</p>
+                        <p style={{ gap: '6px' }}><Clock size={16} /> {party.time}</p>
+                      </div>
+                      <div className="party-card-footer">
+                        {badgeStatusText !== '已關閉' ? (
+                          <span className="player-count">目前人數: {party.currentPlayers} / {party.maxPlayers}</span>
+                        ) : (
+                          <span className="player-count"></span>
+                        )}
+                        <button className="btn-join" onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/party/${party.id}`, { state: { party } });
+                        }}>
+                          {isHost ? '管理' : isFull && isWaitlistFull ? '查看詳情' : isFull ? '排候補' : '報名參加'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <p style={{ color: '#94a3b8', fontSize: '15px' }}>目前尚無揪團紀錄</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

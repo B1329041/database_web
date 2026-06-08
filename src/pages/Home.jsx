@@ -140,6 +140,7 @@ function Home() {
 
         const validNotifications = mappedNotifications.filter(n => {
           if (n.text && n.text.includes('場地狀態已更新')) {
+            const currentUserId = localStorage.getItem('user_id');
             const party = formattedGames.find(g => g.id === n.match_id);
             const isHost = party ? (party.creator_id === currentUserId || party.creator === currentUserId) : false;
             if (isHost) return false;
@@ -424,7 +425,15 @@ function Home() {
                   通知中心
                   <span 
                     style={{ fontSize: '12px', color: '#7995a5', cursor: 'pointer', fontWeight: 'normal' }}
-                    onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
+                    onClick={async () => {
+                      const unreadNotifs = notifications.filter(n => !n.read);
+                      if (unreadNotifs.length > 0) {
+                        try {
+                          await Promise.all(unreadNotifs.map(n => notificationsApi.markAsRead(n.id)));
+                        } catch (e) { console.error('Failed to mark all as read', e); }
+                      }
+                      setNotifications(notifications.map(n => ({...n, read: true})));
+                    }}
                   >
                     全部標示為已讀
                   </span>
@@ -435,7 +444,12 @@ function Home() {
                       <div 
                         key={n.id} 
                         style={{ padding: '12px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '12px', cursor: 'pointer', backgroundColor: n.read ? 'white' : '#f0f9ff' }}
-                        onClick={() => {
+                        onClick={async () => {
+                          if (!n.read) {
+                            try {
+                              await notificationsApi.markAsRead(n.id);
+                            } catch (e) { console.error('Failed to mark as read', e); }
+                          }
                           setNotifications(notifications.map(item => item.id === n.id ? {...item, read: true} : item));
                         }}
                       >
@@ -570,8 +584,49 @@ function Home() {
             .map(party => {
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
+
             let statusText = `缺 ${party.maxPlayers - party.currentPlayers} 人`;
             let statusColor = '#ef4444'; // Red
+            if (isFull && isWaitlistFull) {
+              statusText = '已完全額滿';
+              statusColor = '#94a3b8'; // Gray
+            } else if (isFull) {
+              statusText = `候補 ${party.currentWaitlist}/${party.maxWaitlist}`;
+              statusColor = '#f59e0b'; // Orange
+            }
+
+            let badgeStatusText = '';
+            let badgeStatusColor = '';
+
+            const backendStatus = party.match_status || party.status || party.game_status;
+            
+            if (backendStatus === '已開始' || backendStatus === 'started' || backendStatus === 'playing') {
+              badgeStatusText = '已開始';
+              badgeStatusColor = '#10b981'; // Green
+            } else if (backendStatus === '已關閉' || backendStatus === 'closed' || backendStatus === 'failed_to_start') {
+              badgeStatusText = '已關閉';
+              badgeStatusColor = '#64748b'; // Gray
+            } else if (backendStatus === '已滿' || backendStatus === 'full') {
+              badgeStatusText = '已滿';
+              badgeStatusColor = '#94a3b8'; // Gray
+            } else if (backendStatus === '可候補' || backendStatus === 'waitlisting') {
+              badgeStatusText = '可候補';
+              badgeStatusColor = '#f59e0b'; // Orange
+            } else if (backendStatus === '缺人' || backendStatus === 'recruiting') {
+              badgeStatusText = '缺人';
+              badgeStatusColor = '#ef4444'; // Red
+            } else {
+              if (isFull && isWaitlistFull) {
+                badgeStatusText = '已滿';
+                badgeStatusColor = '#94a3b8';
+              } else if (isFull) {
+                badgeStatusText = '可候補';
+                badgeStatusColor = '#f59e0b';
+              } else {
+                badgeStatusText = '缺人';
+                badgeStatusColor = '#ef4444';
+              }
+            }
 
             const currentUserId = localStorage.getItem('user_id');
             const isHost = currentUserId && (
@@ -581,14 +636,6 @@ function Home() {
               party.participants?.[0] === '主揪人' ||
               (party.user_id && String(party.user_id) === String(currentUserId))
             );
-
-            if (isFull && isWaitlistFull) {
-              statusText = '已完全額滿';
-              statusColor = '#94a3b8'; // Gray
-            } else if (isFull) {
-              statusText = `候補 ${party.currentWaitlist}/${party.maxWaitlist}`;
-              statusColor = '#f59e0b'; // Orange
-            }
 
             return (
               <div key={party.id} className={`party-card clickable-card ${isHost ? 'hosted-party' : ''}`} onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
@@ -602,8 +649,15 @@ function Home() {
                     {party.genderLimit && party.genderLimit !== '不限' && (
                       <span className="party-level">{party.genderLimit}</span>
                     )}
+                    {badgeStatusText && (
+                      <span className="party-level" style={{ backgroundColor: badgeStatusColor, color: 'white', fontWeight: 'bold' }}>
+                        {badgeStatusText}
+                      </span>
+                    )}
                   </div>
-                  <span className="party-status" style={{ color: statusColor }}>{statusText}</span>
+                  {badgeStatusText !== '已關閉' && (
+                    <span className="party-status" style={{ color: statusColor }}>{statusText}</span>
+                  )}
                 </div>
                 <h3 className="party-title">{party.title}</h3>
                 <div className="party-info">
@@ -611,7 +665,11 @@ function Home() {
                   <p style={{ gap: '6px' }}><Clock size={16} /> {party.time}</p>
                 </div>
                 <div className="party-card-footer">
-                  <span className="player-count">目前人數: {party.currentPlayers} / {party.maxPlayers}</span>
+                  {badgeStatusText !== '已關閉' ? (
+                    <span className="player-count">目前人數: {party.currentPlayers} / {party.maxPlayers}</span>
+                  ) : (
+                    <span className="player-count"></span>
+                  )}
                   <button className="btn-join" onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/party/${party.id}`, { state: { party } });
