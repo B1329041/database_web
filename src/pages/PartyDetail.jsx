@@ -124,7 +124,7 @@ function PartyDetail() {
                            initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId);
 
   const [hasJoined, setHasJoined] = useState(initialHasJoined);
-  const [isWaitlisted, setIsWaitlisted] = useState(initialIsWaitlisted);
+  const [isWaitlisted, setIsWaitlisted] = useState(initialParty.waitlist?.some(p => p.name === '我 (使用者)' || p.id === currentUserId) || false);
   const [joinType, setJoinType] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const [showListModal, setShowListModal] = useState(null); // 'participants' | 'waitlist' | null
