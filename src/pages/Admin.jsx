@@ -797,12 +797,6 @@ function Admin() {
           >
             <Wrench size={20} /> 房間狀態調整
           </button>
-          <button 
-            className={`admin-nav-btn ${activeTab === 'demo_reputation' ? 'active' : ''}`}
-            onClick={() => setActiveTab('demo_reputation')}
-          >
-            <TrendingUp size={20} /> 信譽積分調整
-          </button>
         </nav>
 
         <button 
@@ -1918,106 +1912,7 @@ function Admin() {
           </div>
         )}
 
-        {/* 信譽積分調整 Tab */}
-        {activeTab === 'demo_reputation' && (
-          <div className="admin-content" style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h2 style={{ marginBottom: '8px', color: '#1e293b' }}>📈 信譽積分模擬 (Reputation Simulator)</h2>
-            <p style={{ color: '#64748b', marginBottom: '32px' }}>此為開發調測工具，可直接強制調整選定會員的信譽評分，以利測試不同信用門檻的阻擋邏輯。</p>
 
-            <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)' }}>
-              <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                <UserCircle size={24} color="#7995a5" /> 模擬玩家信譽設定
-              </h3>
-              
-              {selectedUser ? (
-                <>
-                  {/* 玩家選擇 */}
-                  <div className="form-group" style={{ marginBottom: '24px' }}>
-                    <label className="form-label" style={{ fontSize: '14px', fontWeight: '700', color: '#475569' }}>選擇目標玩家</label>
-                    <select 
-                      className="form-input" 
-                      value={selectedUser.id} 
-                      onChange={(e) => {
-                        const user = users.find(u => u.id === parseInt(e.target.value, 10));
-                        setSelectedUser(user);
-                      }}
-                      style={{ height: '44px', borderRadius: '10px', fontSize: '14px' }}
-                    >
-                      {users.map(u => (
-                        <option key={u.id} value={u.id}>{u.name} (現有積分: {u.reputation})</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* 狀態預覽卡 */}
-                  <div style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '13px', color: '#64748b' }}>目前選擇玩家</div>
-                        <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b', marginTop: '4px' }}>{selectedUser.name}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '13px', color: '#64748b' }}>設定信譽積分</div>
-                        <div style={{ fontSize: '24px', fontWeight: '900', color: getReputationStatus(selectedUser.reputation).color, marginTop: '2px' }}>
-                          {selectedUser.reputation} 分
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '14px', paddingTop: '10px', fontSize: '13px', fontWeight: '700', color: getReputationStatus(selectedUser.reputation).color }}>
-                      系統判定狀態：{getReputationStatus(selectedUser.reputation).label}
-                    </div>
-                  </div>
-
-                  {/* 分數快速切換按鈕 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#ef4444', color: '#ef4444', borderRadius: '10px' }} onClick={() => handleUpdateReputation(40)}>
-                      40 (Ban 永久停權)
-                    </button>
-                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#f59e0b', color: '#f59e0b', borderRadius: '10px' }} onClick={() => handleUpdateReputation(50)}>
-                      50 (懲罰觀察期)
-                    </button>
-                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#fcd34d', color: '#b45309', borderRadius: '10px' }} onClick={() => handleUpdateReputation(60)}>
-                      60 (警告/禁創房)
-                    </button>
-                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#10b981', color: '#10b981', borderRadius: '10px' }} onClick={() => handleUpdateReputation(90)}>
-                      90 (恢復正常積分)
-                    </button>
-                  </div>
-
-                  {/* 一鍵重置數據 */}
-                  <button 
-                    className="btn-outline" 
-                    style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderColor: '#64748b', color: '#64748b', borderRadius: '10px', fontWeight: '700' }} 
-                    onClick={async () => {
-                      if (!window.confirm('確定要將所有玩家的信譽積分重置回 90 分嗎？')) return;
-                      try {
-                        await usersApi.resetAllUserReputations();
-                        setUsers(users.map(u => ({ ...u, reputation: 90 })));
-                        if (selectedUser) {
-                          setSelectedUser({ ...selectedUser, reputation: 90 });
-                        }
-                        setUmUsers(prev => prev.map(u => ({ ...u, credit_point: 90 })));
-                        if (umSelectedUser) {
-                          setUmSelectedUser(prev => ({ ...prev, credit_point: 90 }));
-                        }
-                        alert('已成功重置所有玩家的信譽積分為 90 分。');
-                      } catch (error) {
-                        console.error('Reset error:', error);
-                        alert('重置失敗，請確認伺服器狀態。');
-                      }
-                    }}
-                  >
-                    <RefreshCcw size={16} /> 一鍵重置所有玩家信譽 (90分)
-                  </button>
-                </>
-              ) : (
-                <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '40px' }}>
-                  目前無可用的玩家資料以利模擬
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </main>
 
       {/* 編輯系統公告 Modal */}
