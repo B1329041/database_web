@@ -7,7 +7,7 @@ const adminApi = {
    * @returns {Promise}
    */
   submitFeedback: (data) => {
-    return axiosClient.post('/feedback', data);
+    return axiosClient.post('/feedback/', data);
   },
 
   /**
@@ -16,7 +16,7 @@ const adminApi = {
    * @returns {Promise}
    */
   getFeedbacks: (params) => {
-    return axiosClient.get('/admin/feedbacks', { params });
+    return axiosClient.get('/admin/feedbacks/', { params });
   },
 
   /**
@@ -26,7 +26,25 @@ const adminApi = {
    * @returns {Promise}
    */
   handleFeedback: (feedbackId, data) => {
-    return axiosClient.put(`/admin/feedbacks/${feedbackId}/handle`, data);
+    return axiosClient.put(`/admin/feedbacks/${feedbackId}/handle/`, data);
+  },
+
+  /**
+   * 刪除使用者回饋 (限 Admin)
+   * @param {number|string} feedbackId
+   * @returns {Promise}
+   */
+  deleteFeedback: (feedbackId) => {
+    return axiosClient.delete(`/feedback/${feedbackId}/`);
+  },
+
+  /**
+   * 新增場地 (限 Admin)
+   * @param {Object} data - { name, city, district, facilities }
+   * @returns {Promise}
+   */
+  createVenue: (data) => {
+    return axiosClient.post('/venues/', data);
   },
 
   /**
@@ -35,7 +53,7 @@ const adminApi = {
    * @returns {Promise}
    */
   deleteVenue: (venueId) => {
-    return axiosClient.delete(`/admin/venues/${venueId}`);
+    return axiosClient.delete(`/admin/venues/${venueId}/`);
   },
 
   /**
@@ -75,11 +93,20 @@ const adminApi = {
   },
 
   /**
+   * 發送系統/特定通知 (限 Admin)
+   * @param {Object} data - { target, game_id, title, message }
+   * @returns {Promise}
+   */
+  sendBroadcast: (data) => {
+    return axiosClient.post('/admin/broadcast/', data);
+  },
+
+  /**
    * 管理員數據分析 (Dashboard)
    * @returns {Promise}
    */
   getAdminAnalytics: () => {
-    return axiosClient.get('/admin/analytics');
+    return axiosClient.get('/admin/analytics/');
   },
 
   /**
@@ -89,7 +116,7 @@ const adminApi = {
    * @returns {Promise}
    */
   updateDemoGameStatus: (gameId, data) => {
-    return axiosClient.patch(`/admin/demo/games/${gameId}/status`, data);
+    return axiosClient.patch(`/admin/demo/games/${gameId}/status/`, data);
   },
 
   /**
@@ -98,16 +125,7 @@ const adminApi = {
    * @returns {Promise}
    */
   updateDemoWeather: (data) => {
-    return axiosClient.patch(`/admin/demo/weather`, data);
-  },
-
-  /**
-   * 刪除使用者回饋 (限 Admin)
-   * @param {number|string} feedbackId
-   * @returns {Promise}
-   */
-  deleteFeedback: (feedbackId) => {
-    return axiosClient.delete(`/feedback/${feedbackId}/`);
+    return axiosClient.patch(`/admin/demo/weather/`, data);
   },
 
   /**
@@ -123,6 +141,16 @@ const adminApi = {
         'Content-Type': 'multipart/form-data'
       }
     });
+  },
+
+  /**
+   * 更新玩家信譽積分 (限 Admin)
+   * @param {number|string} userId 
+   * @param {number} creditPoint 
+   * @returns {Promise}
+   */
+  updateUserReputation: (userId, creditPoint) => {
+    return axiosClient.patch(`/users/${userId}/reputation/`, { credit_point: creditPoint });
   }
 };
 

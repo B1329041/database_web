@@ -111,9 +111,9 @@ function Home() {
           const originalLevel = party.level || party.target_level || 'C';
           const rawLevel = reverseLevelMap[originalLevel] || originalLevel;
           let venueStatus = 'pending';
-          if (party.booking_status === '已確認/已預約' || party.booking_status === '已預約/已確認' || party.booking_status === 'confirmed' || party.game_note === 'CONFIRMED') {
+          if (party.booking_status === '已佔到/已預約' || party.booking_status === '已確認/已預約' || party.booking_status === '已預約/已確認' || party.booking_status === 'confirmed' || party.game_note === 'CONFIRMED') {
             venueStatus = 'confirmed';
-          } else if (party.booking_status === '未借到場地' || party.booking_status === 'failed' || party.game_note === 'FAILED') {
+          } else if (party.booking_status === '未佔到/未預約' || party.booking_status === '未借到場地' || party.booking_status === 'failed' || party.game_note === 'FAILED') {
             venueStatus = 'failed';
           }
           
@@ -134,6 +134,8 @@ function Home() {
             description: party.game_note || party.description,
             venue_note: party.venue_note || party.game_note,
             participants: party.participants || [],
+            participant_ids: party.participant_ids || [],
+            waitlist_ids: party.waitlist_ids || [],
             creator_id: party.creator_id,
           };
         });
@@ -523,7 +525,7 @@ function Home() {
                       const unreadNotifs = notifications.filter(n => !n.read);
                       if (unreadNotifs.length > 0) {
                         try {
-                          await Promise.all(unreadNotifs.map(n => notificationsApi.markAsRead(n.id)));
+                           await Promise.all(unreadNotifs.map(n => notificationsApi.markAsRead(n.id)));
                         } catch (e) { console.error('Failed to mark all as read', e); }
                       }
                       setNotifications(notifications.map(n => ({...n, read: true})));
@@ -627,7 +629,7 @@ function Home() {
                         )}
                       </div>
                     ))
-                  ) : (
+                   ) : (
                     <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>目前沒有新通知</div>
                   )}
                 </div>
@@ -754,8 +756,14 @@ function Home() {
               party.participants?.[0] === '主揪人' ||
               (party.user_id && String(party.user_id) === String(currentUserId))
             );
-            const isParticipant = currentUserId && party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
-            const isWaitlisted = currentUserId && party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+            const isParticipant = currentUserId && (
+              party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId)) ||
+              party.participant_ids?.some(id => String(id) === String(currentUserId))
+            );
+            const isWaitlisted = currentUserId && (
+              party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId)) ||
+              party.waitlist_ids?.some(id => String(id) === String(currentUserId))
+            );
 
             const isFull = party.currentPlayers >= party.maxPlayers;
             const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
@@ -808,8 +816,6 @@ function Home() {
               }
             }
 
-
-
             return (
               <div key={party.id} className={`party-card clickable-card ${isHost ? 'hosted-party' : ''}`} onClick={() => navigate(`/party/${party.id}`, { state: { party } })}>
                 <div className="party-card-header">
@@ -819,6 +825,16 @@ function Home() {
                     )}
                     <span className="party-type">{party.type}</span>
                     <span className="party-level">{party.level}</span>
+                    {party.venueStatus === 'confirmed' && (
+                      <span className="party-level" style={{ backgroundColor: '#10b981', color: 'white', fontWeight: 'bold' }}>
+                        ✅ 場地已確認
+                      </span>
+                    )}
+                    {party.venueStatus === 'failed' && (
+                      <span className="party-level" style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: 'bold' }}>
+                        ❌ 未借到場地
+                      </span>
+                    )}
                     {party.genderLimit && party.genderLimit !== '不限' && (
                       <span className="party-level">{party.genderLimit}</span>
                     )}

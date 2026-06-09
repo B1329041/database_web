@@ -2,11 +2,11 @@ import axiosClient from './axiosClient';
 
 const notificationsApi = {
   /**
-   * 取得通知列表
+   * 取得使用者的通知清單
    * @returns {Promise}
    */
   getNotifications: () => {
-    return axiosClient.get('/notifications');
+    return axiosClient.get('/notifications/');
   },
 
   /**

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, Pencil, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Bell, Plus, Trash2, Pencil, ArrowLeft, TrendingUp, BarChart3, MessageSquarePlus, MessageSquareText, Wrench, RefreshCcw, UserCircle, CloudRain, CheckCircle, XCircle, Search, Filter, Users, ShieldBan, Eye, ChevronRight } from 'lucide-react';
 import adminApi from '../api/admin';
 import venuesApi from '../api/venues';
 import gamesApi from '../api/games';
@@ -64,6 +64,15 @@ function Admin() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [weatherIndex, setWeatherIndex] = useState(80);
+
+  // 會員管理 (User Management) 專用狀態
+  const [umSearchQuery, setUmSearchQuery] = useState('');
+  const [umUsers, setUmUsers] = useState([]);
+  const [umSelectedUser, setUmSelectedUser] = useState(null);
+  const [umSelectedUserDetail, setUmSelectedUserDetail] = useState(null);
+  const [umLoadingDetail, setUmLoadingDetail] = useState(false);
+  const [umEditScore, setUmEditScore] = useState('');
+  const [umIsLoadingUsers, setUmIsLoadingUsers] = useState(false);
   const [allVenuesForFiltering, setAllVenuesForFiltering] = useState([]);
   const [editingVenueId, setEditingVenueId] = useState(null);
   const [filterSport, setFilterSport] = useState('');
@@ -271,11 +280,149 @@ function Admin() {
     fetchAdminData();
   }, []);
 
-  // Demo 工具相關邏輯
-  const handleUpdateReputation = (score) => {
-    setUsers(users.map(u => u.id === selectedUser.id ? { ...u, reputation: score } : u));
-    setSelectedUser({ ...selectedUser, reputation: score });
-    alert(`玩家 ${selectedUser.name} 的信譽積分已調整為：${score}`);
+  // 載入會員管理列表
+  const handleFetchUmUsers = async (query = '') => {
+    setUmIsLoadingUsers(true);
+    try {
+      let data;
+      if (query.trim()) {
+        data = await usersApi.searchUsers(query);
+      } else {
+        data = await usersApi.getAllUsers();
+      }
+      const rawUsers = Array.isArray(data) ? data : (data.results || []);
+      setUmUsers(rawUsers);
+    } catch (error) {
+      console.error('Fetch user list error:', error);
+    } finally {
+      setUmIsLoadingUsers(false);
+    }
+  };
+
+  const handleUmSearchSubmit = (e) => {
+    e.preventDefault();
+    handleFetchUmUsers(umSearchQuery);
+  };
+
+  // 當切換到會員管理分頁時，自動載入全部使用者
+  useEffect(() => {
+    if (activeTab === 'user_management') {
+      handleFetchUmUsers(umSearchQuery);
+    }
+  }, [activeTab]);
+
+  const handleSelectUmUser = async (user) => {
+    setUmSelectedUser(user);
+    setUmLoadingDetail(true);
+    setUmEditScore(user.credit_point ?? 90);
+    try {
+      const detail = await usersApi.getUserDetail(user.id);
+      setUmSelectedUserDetail(detail);
+    } catch (error) {
+      console.error('Fetch user detail error:', error);
+      // Fallback in case API is not fully set up on backend or returns error
+      setUmSelectedUserDetail({
+        ...user,
+        gender: user.gender || '男',
+        birthday: user.birthday || '未設定',
+        line_id: user.line_id || '無',
+        instagram: user.instagram || '無',
+        bio: user.bio || '未設定',
+        hosted_matches: [],
+        joined_matches: []
+      });
+    } finally {
+      setUmLoadingDetail(false);
+    }
+  };
+
+  const handleBanUser = async (userId) => {
+    if (!window.confirm('確定要暫停此會員的帳號權限嗎？')) return;
+    try {
+      await usersApi.banUser(userId);
+      alert('已成功暫停該帳號 (Ban)');
+      // 更新狀態
+      if (umSelectedUser && umSelectedUser.id === userId) {
+        setUmSelectedUser(prev => ({ ...prev, is_active: false }));
+        if (umSelectedUserDetail) {
+          setUmSelectedUserDetail(prev => ({ ...prev, is_active: false }));
+        }
+      }
+      setUmUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: false } : u));
+    } catch (error) {
+      console.error('Ban user error:', error);
+      alert(error.response?.data?.detail || '暫停帳號失敗，請稍後再試。');
+    }
+  };
+
+  const handleUnbanUser = async (userId) => {
+    if (!window.confirm('確定要恢復此會員的帳號權限嗎？')) return;
+    try {
+      await usersApi.unbanUser(userId);
+      alert('已成功恢復該帳號權限');
+      // 更新狀態
+      if (umSelectedUser && umSelectedUser.id === userId) {
+        setUmSelectedUser(prev => ({ ...prev, is_active: true }));
+        if (umSelectedUserDetail) {
+          setUmSelectedUserDetail(prev => ({ ...prev, is_active: true }));
+        }
+      }
+      setUmUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: true } : u));
+    } catch (error) {
+      console.error('Unban user error:', error);
+      alert(error.response?.data?.detail || '恢復帳號權限失敗，請稍後再試。');
+    }
+  };
+
+  const handleUpdateUmReputation = async (userId, score) => {
+    const intScore = parseInt(score, 10);
+    if (isNaN(intScore) || intScore < 0 || intScore > 100) {
+      alert('信譽積分必須在 0 到 100 之間。');
+      return;
+    }
+    try {
+      await adminApi.updateUserReputation(userId, intScore);
+      alert(`已將該會員的信譽積分調整為：${intScore}`);
+      // 更新狀態
+      if (umSelectedUser && umSelectedUser.id === userId) {
+        setUmSelectedUser(prev => ({ ...prev, credit_point: intScore }));
+        if (umSelectedUserDetail) {
+          setUmSelectedUserDetail(prev => ({ ...prev, credit_point: intScore }));
+        }
+      }
+      setUmUsers(prev => prev.map(u => u.id === userId ? { ...u, credit_point: intScore } : u));
+      // 同步更新 Demo 工具箱的 users 狀態，以防資料不同步
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, reputation: intScore } : u));
+      if (selectedUser && selectedUser.id === userId) {
+        setSelectedUser(prev => ({ ...prev, reputation: intScore }));
+      }
+    } catch (error) {
+      console.error('Update reputation error:', error);
+      alert(error.response?.data?.detail || '調整信譽積分失敗，請稍後再試。');
+    }
+  };
+
+  // Demo 工具相關邏輯 (串接真實 API)
+  const handleUpdateReputation = async (score) => {
+    if (!selectedUser) return;
+    try {
+      await adminApi.updateUserReputation(selectedUser.id, score);
+      setUsers(users.map(u => u.id === selectedUser.id ? { ...u, reputation: score } : u));
+      setSelectedUser({ ...selectedUser, reputation: score });
+      
+      // 同步更新會員管理狀態中的分數
+      setUmUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, credit_point: score } : u));
+      if (umSelectedUser && umSelectedUser.id === selectedUser.id) {
+        setUmSelectedUser(prev => ({ ...prev, credit_point: score }));
+        if (umSelectedUserDetail) {
+          setUmSelectedUserDetail(prev => ({ ...prev, credit_point: score }));
+        }
+      }
+      alert(`玩家 ${selectedUser.name} 的信譽積分已調整為：${score}`);
+    } catch (error) {
+      console.error('Update reputation error:', error);
+      alert('調整信譽積分失敗，請確認伺服器狀態。');
+    }
   };
 
   const handleUpdatePartyStatus = async (id, newStatus, newTime) => {
@@ -637,6 +784,12 @@ function Admin() {
             onClick={() => setActiveTab('feedbacks')}
           >
             <MessageSquareText size={20} /> 使用者回饋
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'user_management' ? 'active' : ''}`}
+            onClick={() => setActiveTab('user_management')}
+          >
+            <Users size={20} /> 會員管理
           </button>
           <div style={{ margin: '20px 0', borderTop: '1px solid rgba(255,255,255,0.1)' }}></div>
           <button 
@@ -1163,6 +1316,389 @@ function Admin() {
                   {feedbackFilter === 'pending' ? '目前沒有待處理的回饋。' : '目前沒有已完成的回饋。'}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* 會員管理 Tab */}
+        {activeTab === 'user_management' && (
+          <div className="admin-content">
+            <h2 style={{ marginBottom: '8px', color: '#1e293b' }}>👥 會員帳號管理 (User Management)</h2>
+            <p style={{ color: '#64748b', marginBottom: '32px' }}>提供關鍵字搜尋會員，查看每位會員的詳細個人檔案、歷史創房/參團紀錄，並具備「暫停帳號 (Ban)」或「調整信譽積分」的權限。</p>
+
+            {/* 搜尋列 */}
+            <form onSubmit={handleUmSearchSubmit} style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  type="text"
+                  placeholder="搜尋 Email、手機、姓名..."
+                  value={umSearchQuery}
+                  onChange={(e) => setUmSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px 12px 42px',
+                    borderRadius: '12px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#fff'
+                  }}
+                />
+              </div>
+              <button type="submit" className="btn-primary" style={{ padding: '0 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Search size={16} /> 搜尋
+              </button>
+              {umSearchQuery && (
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => {
+                    setUmSearchQuery('');
+                    handleFetchUmUsers('');
+                  }}
+                  style={{ padding: '0 16px', borderRadius: '12px' }}
+                >
+                  清除
+                </button>
+              )}
+            </form>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '32px', alignItems: 'start' }}>
+              
+              {/* 左側：會員清單 */}
+              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    <Users size={20} color="#7995a5" /> 會員清單 ({umUsers.length} 人)
+                  </h3>
+                </div>
+
+                {umIsLoadingUsers ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
+                    <div className="upload-spinner" style={{ width: '32px', height: '32px', borderWidth: '3px' }}></div>
+                  </div>
+                ) : (
+                  <div className="demo-parties-list" style={{ maxHeight: '600px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                    {umUsers.map((u) => {
+                      const isBanned = u.is_active === false;
+                      const repStatus = getReputationStatus(u.credit_point ?? 90);
+                      const isSelected = umSelectedUser && umSelectedUser.id === u.id;
+
+                      return (
+                        <div
+                          key={u.id}
+                          onClick={() => handleSelectUmUser(u)}
+                          style={{
+                            padding: '16px',
+                            borderRadius: '12px',
+                            border: '1px solid',
+                            borderColor: isSelected ? '#7995a5' : '#e2e8f0',
+                            backgroundColor: isSelected ? '#f8fafc' : '#fff',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                          className="user-list-item"
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                            <div style={{ position: 'relative' }}>
+                              {u.avatar_url ? (
+                                <SafeImage src={u.avatar_url} alt="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#64748b' }}>
+                                  <UserCircle size={24} />
+                                </div>
+                              )}
+                              {isBanned && (
+                                <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', backgroundColor: '#ef4444', color: 'white', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px solid white' }}>
+                                  <ShieldBan size={10} />
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ overflow: 'hidden' }}>
+                              <div style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {u.name || u.email?.split('@')[0] || `會員 #${u.id}`}
+                                {isBanned && (
+                                  <span style={{ fontSize: '11px', fontWeight: '800', backgroundColor: '#fee2e2', color: '#ef4444', padding: '2px 6px', borderRadius: '4px' }}>已停權</span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {u.email}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '13px', fontWeight: '800', color: repStatus.color }}>
+                                {u.credit_point ?? 90} 分
+                              </div>
+                              <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                {repStatus.label.split(' ')[0]}
+                              </div>
+                            </div>
+                            <ChevronRight size={16} color="#cbd5e1" />
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {umUsers.length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
+                        找不到符合條件的會員。
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 右側：會員詳細檔案與紀錄 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {umSelectedUser ? (
+                  <div style={{ backgroundColor: 'white', padding: '28px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {umSelectedUser.avatar_url ? (
+                          <SafeImage src={umSelectedUser.avatar_url} alt="avatar" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0' }} />
+                        ) : (
+                          <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#94a3b8', border: '2px solid #e2e8f0' }}>
+                            <UserCircle size={36} />
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ fontSize: '20px', fontWeight: '800', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {umSelectedUser.name || '未填寫姓名'}
+                            {umSelectedUser.is_active === false && (
+                              <span style={{ fontSize: '12px', fontWeight: '800', backgroundColor: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '4px' }}>帳號暫停中</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>會員 ID: #{umSelectedUser.id}</div>
+                        </div>
+                      </div>
+
+                      {/* 停權與解除停權按鈕 */}
+                      <div>
+                        {umSelectedUser.is_active === false ? (
+                          <button
+                            onClick={() => handleUnbanUser(umSelectedUser.id)}
+                            className="btn-outline"
+                            style={{ borderColor: '#10b981', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '10px', fontSize: '13px' }}
+                          >
+                            <CheckCircle size={16} /> 恢復帳號權限
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleBanUser(umSelectedUser.id)}
+                            className="btn-outline"
+                            style={{ borderColor: '#ef4444', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '10px', fontSize: '13px' }}
+                          >
+                            <ShieldBan size={16} /> 暫停帳號 (Ban)
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 基本資料列表 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>電子信箱</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px', wordBreak: 'break-all' }}>{umSelectedUser.email}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>聯絡電話</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px' }}>{umSelectedUser.phone || '未填寫'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>性別</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px' }}>{umSelectedUserDetail?.gender || '未填寫'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>生日</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px' }}>{umSelectedUserDetail?.birthday || '未填寫'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>Line ID</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px' }}>{umSelectedUserDetail?.line_id || '未填寫'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>Instagram</div>
+                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '700', marginTop: '2px' }}>{umSelectedUserDetail?.instagram || '未填寫'}</div>
+                      </div>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>個人簡介</div>
+                        <div style={{ fontSize: '14px', color: '#475569', marginTop: '4px', fontStyle: 'italic', backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '8px' }}>
+                          {umSelectedUserDetail?.bio || '這個會員很懶，還沒有寫個人簡介。'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 信譽評分管理 */}
+                    <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '28px' }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <TrendingUp size={16} /> 調整信譽積分
+                      </h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>目前信譽分數</div>
+                          <div style={{ fontSize: '24px', fontWeight: '800', color: getReputationStatus(umSelectedUser.credit_point ?? 90).color }}>
+                            {umSelectedUser.credit_point ?? 90}
+                          </div>
+                        </div>
+                        <div style={{ borderLeft: '1px solid #cbd5e1', height: '40px', margin: '0 8px' }}></div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={umEditScore}
+                              onChange={(e) => setUmEditScore(e.target.value)}
+                              style={{ width: '80px', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', textAlign: 'center', fontSize: '14px', fontWeight: '800' }}
+                            />
+                            <button
+                              onClick={() => handleUpdateUmReputation(umSelectedUser.id, umEditScore)}
+                              className="btn-primary"
+                              style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '13px' }}
+                            >
+                              變更分數
+                            </button>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                            信譽狀況：<span style={{ fontWeight: '700', color: getReputationStatus(umSelectedUser.credit_point ?? 90).color }}>{getReputationStatus(umSelectedUser.credit_point ?? 90).label}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 歷史揪團與參團紀錄 */}
+                    <div>
+                      <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', borderBottom: '2px solid #cbd5e1', paddingBottom: '8px' }}>
+                        歷史揪團與參團紀錄
+                      </h4>
+                      {umLoadingDetail ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                          <div className="upload-spinner" style={{ width: '24px', height: '24px', borderWidth: '2px' }}></div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          
+                          {/* 創房紀錄 (Hosted) */}
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#64748b', marginBottom: '8px' }}>
+                              🏠 創立的房間 ({umSelectedUserDetail?.hosted_matches?.length || 0})
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }} className="demo-parties-list">
+                              {(umSelectedUserDetail?.hosted_matches || []).map((m) => (
+                                <div
+                                  key={m.id}
+                                  onClick={() => navigate(`/party/${m.id}`)}
+                                  style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #f1f5f9',
+                                    backgroundColor: '#faf5ff',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    transition: 'background-color 0.2s'
+                                  }}
+                                  className="match-history-item"
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                    <span style={{
+                                      fontSize: '11px',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      border: '1px solid',
+                                      ...getSportBadgeStyle(m.sport_name)
+                                    }}>
+                                      {m.sport_name || '其他'}
+                                    </span>
+                                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {m.title || m.game_name}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#64748b', flexShrink: 0 }}>
+                                    {m.booking_date} {m.time_slot}
+                                  </div>
+                                </div>
+                              ))}
+                              {(umSelectedUserDetail?.hosted_matches || []).length === 0 && (
+                                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '12px', fontStyle: 'italic' }}>
+                                  尚無創立房間紀錄
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 參團紀錄 (Joined) */}
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#64748b', marginBottom: '8px' }}>
+                              🙋 參加的房間 ({umSelectedUserDetail?.joined_matches?.length || 0})
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }} className="demo-parties-list">
+                              {(umSelectedUserDetail?.joined_matches || []).map((m) => (
+                                <div
+                                  key={m.id}
+                                  onClick={() => navigate(`/party/${m.id}`)}
+                                  style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #f1f5f9',
+                                    backgroundColor: '#f0fdf4',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    transition: 'background-color 0.2s'
+                                  }}
+                                  className="match-history-item"
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                    <span style={{
+                                      fontSize: '11px',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      border: '1px solid',
+                                      ...getSportBadgeStyle(m.sport_name)
+                                    }}>
+                                      {m.sport_name || '其他'}
+                                    </span>
+                                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {m.title || m.game_name}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#64748b', flexShrink: 0 }}>
+                                    {m.booking_date} {m.time_slot}
+                                  </div>
+                                </div>
+                              ))}
+                              {(umSelectedUserDetail?.joined_matches || []).length === 0 && (
+                                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '12px', fontStyle: 'italic' }}>
+                                  尚無參團紀錄
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ backgroundColor: 'white', padding: '60px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#94a3b8' }}>
+                    <Users size={48} style={{ margin: '0 auto 16px auto', display: 'block', color: '#cbd5e1' }} />
+                    <div style={{ fontSize: '16px', fontWeight: '700' }}>請從左側會員清單選擇一位會員</div>
+                    <div style={{ fontSize: '13px', marginTop: '4px' }}>即可查看詳細個人檔案及揪團歷史紀錄、並進行帳號管理動作。</div>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         )}

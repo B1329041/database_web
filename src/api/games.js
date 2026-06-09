@@ -6,7 +6,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   getSports: () => {
-    return axiosClient.get('/sports');
+    return axiosClient.get('/sports/');
   },
 
   /**
@@ -15,7 +15,15 @@ const gamesApi = {
    * @returns {Promise}
    */
   getGames: (params) => {
-    return axiosClient.get('/games', { params: { ...params, _t: Date.now() } });
+    return axiosClient.get('/games/', { params: { ...params, _t: Date.now() } });
+  },
+
+  /**
+   * 取得個人歷史球局
+   * @returns {Promise}
+   */
+  getHistory: () => {
+    return axiosClient.get('/games/history/');
   },
 
   /**
@@ -24,7 +32,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   getGameById: (gameId) => {
-    return axiosClient.get(`/games/${gameId}`);
+    return axiosClient.get(`/games/${gameId}/`);
   },
 
   /**
@@ -33,7 +41,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   createGame: (data) => {
-    return axiosClient.post('/games', data);
+    return axiosClient.post('/games/', data);
   },
 
   /**
@@ -51,7 +59,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   cancelGame: (gameId) => {
-    return axiosClient.delete(`/games/${gameId}/cancel`);
+    return axiosClient.delete(`/games/${gameId}/cancel/`);
   },
 
   /**
@@ -61,7 +69,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   updateVenueStatus: (gameId, data) => {
-    return axiosClient.patch(`/games/${gameId}/venue-status`, data);
+    return axiosClient.patch(`/games/${gameId}/venue-status/`, data);
   },
 
   /**
@@ -70,7 +78,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   getAnnouncements: (gameId) => {
-    return axiosClient.get(`/games/${gameId}/announcements`);
+    return axiosClient.get(`/games/${gameId}/announcements/`);
   },
 
   /**
@@ -80,7 +88,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   createAnnouncement: (gameId, data) => {
-    return axiosClient.post(`/games/${gameId}/announcements`, data);
+    return axiosClient.post(`/games/${gameId}/announcements/`, data);
   },
 
   /**
@@ -90,7 +98,16 @@ const gamesApi = {
    * @returns {Promise}
    */
   updateGame: (gameId, data) => {
-    return axiosClient.patch(`/games/${gameId}`, data);
+    return axiosClient.patch(`/games/${gameId}/`, data);
+  },
+
+  /**
+   * 取得參與名單與候補名單
+   * @param {number|string} gameId 
+   * @returns {Promise}
+   */
+  getParticipants: (gameId) => {
+    return axiosClient.get(`/games/${gameId}/participants/`);
   },
 
   /**
@@ -99,7 +116,7 @@ const gamesApi = {
    * @returns {Promise}
    */
   deleteGame: (gameId) => {
-    return axiosClient.delete(`/games/${gameId}`);
+    return axiosClient.delete(`/games/${gameId}/`);
   }
 };
 

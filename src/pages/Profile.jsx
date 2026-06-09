@@ -63,14 +63,26 @@ function Profile() {
           const rawGames = Array.isArray(gamesData.results) ? gamesData.results : (Array.isArray(gamesData) ? gamesData : []);
           const currentUserId = localStorage.getItem('user_id');
           
+          const reverseLevelMap = {
+            'C': '休閒',
+            'B': '業餘',
+            'A': '高手',
+            'S': '高手',
+            '新手': '休閒',
+            '休閒': '休閒',
+            '業餘': '業餘',
+            '高手': '高手'
+          };
+          
           const userGames = rawGames.filter(party => {
             const isHost = party.creator_id && String(party.creator_id) === String(currentUserId);
-            const isParticipant = party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
-            const isWaitlisted = party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+            const isParticipant = party.participant_ids?.some(id => String(id) === String(currentUserId));
+            const isWaitlisted = party.waitlist_ids?.some(id => String(id) === String(currentUserId));
             return isHost || isParticipant || isWaitlisted;
           }).map(newGame => {
             const rawType = newGame.type || newGame.sport_type || newGame.sport_name || (newGame.sport?.name) || '未分類';
-            const rawLevel = newGame.level || newGame.target_level || 'C';
+            const originalLevel = newGame.level || newGame.target_level || 'C';
+            const rawLevel = reverseLevelMap[originalLevel] || originalLevel;
             return {
               ...newGame,
               id: newGame.id,
@@ -80,7 +92,7 @@ function Profile() {
               genderLimit: newGame.genderLimit || newGame.gender_limit || '不限',
               location: newGame.location || newGame.venue_name || '未指定地點',
               description: newGame.description || newGame.game_note || '',
-              venue_note: newGame.venue_note || newGame.game_note || '',
+              game_note: newGame.game_note || '',
               currentWaitlist: newGame.currentWaitlist ?? newGame.current_waitlist ?? 0,
               maxWaitlist: newGame.maxWaitlist ?? newGame.max_waitlist ?? 2,
               currentPlayers: newGame.currentPlayers ?? newGame.current_players ?? 0,
@@ -178,7 +190,16 @@ function Profile() {
       {/* 導覽列 */}
       <nav className="navbar">
         <div className="navbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>不揪ㄛ</div>
-        <div className="navbar-actions">
+        <div className="navbar-actions" style={{ display: 'flex', gap: '10px' }}>
+          {userInfo.role === 'admin' && (
+            <button 
+              className="btn-primary" 
+              style={{ backgroundColor: '#475569', border: 'none' }} 
+              onClick={() => navigate('/admin')}
+            >
+              進入管理者介面
+            </button>
+          )}
           <button className="btn-outline" onClick={() => navigate('/home')}>返回大廳</button>
         </div>
       </nav>
@@ -244,7 +265,7 @@ function Profile() {
                   <p className="profile-email">{userInfo.email}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Cake size={16} /> {userInfo.birthday} {userInfo.gender}
+                      <Cake size={16} /> {userInfo.birthday} ({userInfo.gender})
                     </p>
                     <p className="profile-email" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Phone size={16} /> {userInfo.phone}
@@ -300,7 +321,7 @@ function Profile() {
                       style={{ width: '100%', marginTop: '10px', backgroundColor: '#475569', border: 'none' }} 
                       onClick={() => navigate('/admin')}
                     >
-                      切換為管理員
+                      進入管理者介面
                     </button>
                   )}
                 </>
@@ -311,12 +332,19 @@ function Profile() {
                     <input type="text" className="form-input" value={userInfo.nickname} onChange={e => setUserInfo({...userInfo, nickname: e.target.value})} required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">生日</label>
+                    <label className="form-label">生日 (不可修改)</label>
                     <input type="date" className="form-input" value={userInfo.birthday} readOnly style={{ backgroundColor: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed' }} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">性別</label>
-                    <input type="text" className="form-input" value={userInfo.gender} readOnly style={{ backgroundColor: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed' }} />
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="radio" name="gender" value="男" checked={userInfo.gender === '男'} onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})} /> 男
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="radio" name="gender" value="女" checked={userInfo.gender === '女'} onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})} /> 女
+                      </label>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">聯絡電話</label>
@@ -389,15 +417,9 @@ function Profile() {
               {myParties.length > 0 ? (
                 myParties.map(party => {
                   const currentUserId = localStorage.getItem('user_id');
-                  const isHost = currentUserId && (
-                    (party.creator_id && String(party.creator_id) === String(currentUserId)) || 
-                    (party.participants?.[0]?.id && String(party.participants[0].id) === String(currentUserId)) || 
-                    party.participants?.[0] === '我 (主揪)' || 
-                    party.participants?.[0] === '主揪人' ||
-                    (party.user_id && String(party.user_id) === String(currentUserId))
-                  );
-                  const isParticipant = currentUserId && party.participants?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
-                  const isWaitlisted = currentUserId && party.waitlist?.some(p => String(p.id || p.user_id || p) === String(currentUserId));
+                  const isHost = currentUserId && (party.creator_id && String(party.creator_id) === String(currentUserId));
+                  const isParticipant = currentUserId && party.participant_ids?.some(id => String(id) === String(currentUserId));
+                  const isWaitlisted = currentUserId && party.waitlist_ids?.some(id => String(id) === String(currentUserId));
 
                   const isFull = party.currentPlayers >= party.maxPlayers;
                   const isWaitlistFull = party.currentWaitlist >= party.maxWaitlist;
@@ -474,7 +496,7 @@ function Profile() {
                       </div>
                       <h3 className="party-title">{party.title}</h3>
                       <div className="party-info">
-                        <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}{party.venue_note ? ` (${party.venue_note})` : ''}</p>
+                        <p style={{ gap: '6px' }}><MapPin size={16} /> {party.location}</p>
                         <p style={{ gap: '6px' }}><Clock size={16} /> {party.time}</p>
                       </div>
                       <div className="party-card-footer">
