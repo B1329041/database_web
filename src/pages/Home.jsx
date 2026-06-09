@@ -260,12 +260,6 @@ function Home() {
       '麻將': 5
     };
 
-    const levelMap = {
-      '休閒': 'C',
-      '業餘': 'B',
-      '高手': 'A'
-    };
-
     const venue_id = venueMap[newParty.venue] || 1;
 
     // 計算時間
@@ -287,7 +281,7 @@ function Home() {
       venue_id: venue_id,
       most_players: parseInt(newParty.maxPlayers, 10),
       least_players: parseInt(newParty.minPlayers, 10),
-      target_level: levelMap[newParty.level] || 'C',
+      target_level: newParty.level || '休閒',
       booking_date: booking_date,
       start_time: `${startHour}:${startMin}`,
       time_slot: time_slot,
