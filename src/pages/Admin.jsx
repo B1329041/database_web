@@ -65,6 +65,10 @@ function Admin() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [weatherIndex, setWeatherIndex] = useState(80);
 
+  // 系統公告 & 推播專用狀態
+  const [announcementTarget, setAnnouncementTarget] = useState('all'); // 'all', 'organizer', 'room_members'
+  const [selectedBroadcastGameId, setSelectedBroadcastGameId] = useState('');
+
   // 會員管理 (User Management) 專用狀態
   const [umSearchQuery, setUmSearchQuery] = useState('');
   const [umUsers, setUmUsers] = useState([]);
@@ -214,13 +218,23 @@ function Admin() {
       try {
         const announcementsData = await adminApi.getSystemAnnouncements();
         const rawAnnouncements = Array.isArray(announcementsData) ? announcementsData : (announcementsData.results || []);
-        const mappedAnnouncements = rawAnnouncements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-          photo: a.photo || [],
-          date: a.created_at ? new Date(a.created_at).toLocaleDateString() : ''
-        }));
+        const mappedAnnouncements = rawAnnouncements.map(a => {
+          const photoRegex = /\n\n\[Photos\]\n([^\n]+)/;
+          const match = String(a.content || '').match(photoRegex);
+          let cleanContent = a.content || '';
+          let photo = [];
+          if (match) {
+            photo = match[1].split(',').filter(Boolean);
+            cleanContent = cleanContent.replace(photoRegex, '');
+          }
+          return {
+            id: a.id,
+            title: a.title,
+            content: cleanContent,
+            photo: photo,
+            date: a.created_at ? new Date(a.created_at).toLocaleDateString() : ''
+          };
+        });
         setAnnouncements(mappedAnnouncements);
       } catch (error) {
         console.error('Fetch announcements error:', error);
@@ -555,6 +569,12 @@ function Admin() {
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
     if (!newAnnouncement.title) return;
+
+    if (announcementTarget !== 'all' && !selectedBroadcastGameId) {
+      alert('請選擇目標球局！');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // 1. 先把選取的本機檔案上傳到後端
@@ -566,27 +586,55 @@ function Admin() {
         }
       }
 
-      // 2. 發佈公告 JSON，帶入剛才上傳完成的網址陣列
+      // 2. 決定標題字串
+      let finalTitle = newAnnouncement.title;
+      if (announcementTarget === 'organizer') {
+        finalTitle = `【通知 - 房主】${newAnnouncement.title}`;
+      } else if (announcementTarget === 'room_members') {
+        finalTitle = `【通知 - 房間所有人】${newAnnouncement.title}`;
+      } else {
+        finalTitle = `【公告】${newAnnouncement.title}`;
+      }
+
+      // 3. 序列化圖片網址到 content 欄位中
+      let finalContent = newAnnouncement.content;
+      if (uploadedUrls.length > 0) {
+        finalContent += `\n\n[Photos]\n${uploadedUrls.join(',')}`;
+      }
+
+      // 4. 建立公告
       const payload = {
-        title: newAnnouncement.title,
-        content: newAnnouncement.content,
-        photo: uploadedUrls
+        title: finalTitle,
+        content: finalContent
       };
       const response = await adminApi.createSystemAnnouncement(payload);
+      const announcementId = response.id || Date.now();
       
       const announcement = {
-        id: response.id || Date.now(),
-        title: response.title || newAnnouncement.title,
-        content: response.content || newAnnouncement.content,
-        photo: response.photo || uploadedUrls,
+        id: announcementId,
+        title: finalTitle,
+        content: newAnnouncement.content, // 本地列表顯示乾淨的內容
+        photo: uploadedUrls,
         date: response.created_at ? new Date(response.created_at).toLocaleDateString() : new Date().toLocaleDateString()
       };
+
+      // 5. 呼叫發送推播 API (sendBroadcast)
+      // 訊息格式包含 【系統公告】 前置詞與 (Ref: #id) 尾碼，以便使用者端點擊時可展開完整視窗
+      const broadcastContent = `【系統公告】${finalTitle}：${newAnnouncement.content} (Ref: #${announcementId})`;
+      await adminApi.sendBroadcast({
+        target_group: announcementTarget,
+        content: broadcastContent,
+        game_id: announcementTarget !== 'all' ? selectedBroadcastGameId : null
+      });
+
       setAnnouncements([announcement, ...announcements]);
       setNewAnnouncement({ title: '', content: '', photo: [] });
+      setAnnouncementTarget('all');
+      setSelectedBroadcastGameId('');
       setSelectedFiles([]);
-      alert('公告已發佈！');
+      alert('公告已發佈，並已發送群發推播！');
     } catch (error) {
-      console.error('Create announcement error:', error);
+      console.error('Create announcement and broadcast error:', error);
       alert('發佈失敗，請稍後再試。');
     } finally {
       setIsSubmitting(false);
@@ -715,10 +763,15 @@ function Admin() {
         }
       }
 
+      // 序列化圖片網址到 content 欄位中
+      let finalContent = editingAnnouncement.content;
+      if (finalUrls.length > 0) {
+        finalContent += `\n\n[Photos]\n${finalUrls.join(',')}`;
+      }
+
       const payload = {
         title: editingAnnouncement.title,
-        content: editingAnnouncement.content,
-        photo: finalUrls
+        content: finalContent
       };
       await adminApi.updateSystemAnnouncement(editingAnnouncement.id, payload);
       
@@ -1080,6 +1133,65 @@ function Admin() {
               <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', height: 'fit-content' }}>
                 <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquarePlus size={20} /> 發佈新公告</h3>
                 <form onSubmit={handleAddAnnouncement}>
+                  <div className="form-group">
+                    <label className="form-label">發佈對象 (發送系統推播)</label>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', color: '#475569' }}>
+                        <input
+                          type="radio"
+                          name="announcementTarget"
+                          value="all"
+                          checked={announcementTarget === 'all'}
+                          onChange={() => setAnnouncementTarget('all')}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        全部會員
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', color: '#475569' }}>
+                        <input
+                          type="radio"
+                          name="announcementTarget"
+                          value="organizer"
+                          checked={announcementTarget === 'organizer'}
+                          onChange={() => setAnnouncementTarget('organizer')}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        特定球局房主
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', color: '#475569' }}>
+                        <input
+                          type="radio"
+                          name="announcementTarget"
+                          value="room_members"
+                          checked={announcementTarget === 'room_members'}
+                          onChange={() => setAnnouncementTarget('room_members')}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        房間所有成員
+                      </label>
+                    </div>
+                  </div>
+
+                  {(announcementTarget === 'organizer' || announcementTarget === 'room_members') && (
+                    <div className="form-group" style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
+                      <label className="form-label" style={{ color: '#0284c7' }}>選擇目標球局</label>
+                      <select
+                        required
+                        className="form-input"
+                        value={selectedBroadcastGameId}
+                        onChange={(e) => setSelectedBroadcastGameId(e.target.value)}
+                        style={{ borderColor: '#0284c7' }}
+                      >
+                        <option value="">-- 請選擇球局 --</option>
+                        {parties.map((party) => (
+                          <option key={party.id} value={party.id}>
+                            【ID: {party.id}】{party.sportName} - {party.title} ({party.time})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <label className="form-label">公告標題</label>
                     <input required type="text" className="form-input" placeholder="輸入標題" value={newAnnouncement.title} onChange={e => setNewAnnouncement({...newAnnouncement, title: e.target.value})} />

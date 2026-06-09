@@ -58,7 +58,22 @@ function Home() {
         const announcementsResult = results[5]?.status === 'fulfilled' ? results[5].value : [];
         
         const rawAnnouncements = Array.isArray(announcementsResult) ? announcementsResult : (announcementsResult.results || []);
-        setSystemAnnouncements(rawAnnouncements);
+        const mappedAnnouncements = rawAnnouncements.map(a => {
+          const photoRegex = /\n\n\[Photos\]\n([^\n]+)/;
+          const match = String(a.content || '').match(photoRegex);
+          let cleanContent = a.content || '';
+          let photo = [];
+          if (match) {
+            photo = match[1].split(',').filter(Boolean);
+            cleanContent = cleanContent.replace(photoRegex, '');
+          }
+          return {
+            ...a,
+            content: cleanContent,
+            photo: photo
+          };
+        });
+        setSystemAnnouncements(mappedAnnouncements);
         
         if (userProfileResult) {
           setUserProfile(userProfileResult);
