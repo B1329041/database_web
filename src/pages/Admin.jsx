@@ -791,13 +791,17 @@ function Admin() {
           >
             <Users size={20} /> 會員管理
           </button>
-          <div style={{ margin: '20px 0', borderTop: '1px solid rgba(255,255,255,0.1)' }}></div>
           <button 
-            className={`admin-nav-btn ${activeTab === 'demo' ? 'active' : ''}`}
-            onClick={() => setActiveTab('demo')}
-            style={{ color: '#fcd34d' }}
+            className={`admin-nav-btn ${activeTab === 'demo_games' ? 'active' : ''}`}
+            onClick={() => setActiveTab('demo_games')}
           >
-            <Wrench size={20} /> Demo 工具箱
+            <Wrench size={20} /> 房間狀態調整
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'demo_reputation' ? 'active' : ''}`}
+            onClick={() => setActiveTab('demo_reputation')}
+          >
+            <TrendingUp size={20} /> 信譽積分調整
           </button>
         </nav>
 
@@ -1703,107 +1707,102 @@ function Admin() {
           </div>
         )}
 
-        {/* Demo 工具箱 Tab */}
-        {activeTab === 'demo' && (
+        {/* 房間狀態調整 Tab */}
+        {activeTab === 'demo_games' && (
           <div className="admin-content">
-            <h2 style={{ marginBottom: '8px', color: '#b45309' }}>🛠️ Demo 展示工具箱</h2>
-            <p style={{ color: '#64748b', marginBottom: '32px' }}>這些功能僅供開發與展示使用，可快速改變系統狀態以利 Demo。</p>
+            <h2 style={{ marginBottom: '8px', color: '#1e293b' }}>🛠️ 房間狀態調整 (Room Status Tool)</h2>
+            <p style={{ color: '#64748b', marginBottom: '32px' }}>此為開發調測工具，提供即時搜尋球局，並能強制作為招募中、進行中或已關閉狀態，亦支援微調時間與前推模擬。</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', alignItems: 'start' }}>
-              
-              {/* 房間狀態控制 */}
-              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #fcd34d', display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MapPinned size={20} color="#b45309" /> 快速調整房間狀態
-                </h3>
-
-                {/* 搜尋與篩選列 */}
-                <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {/* 搜尋框 */}
-                  <div style={{ display: 'flex', position: 'relative', alignItems: 'center' }}>
-                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px' }} />
-                    <input 
-                      type="text" 
-                      placeholder="搜尋房間名稱或場地..." 
-                      value={demoSearchQuery}
-                      onChange={e => setDemoSearchQuery(e.target.value)}
-                      style={{ 
-                        width: '100%', 
-                        padding: '8px 12px 8px 36px', 
-                        borderRadius: '8px', 
-                        border: '1px solid #cbd5e1', 
-                        fontSize: '13px', 
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                      }}
-                      onFocus={e => e.target.style.borderColor = '#d97706'}
-                      onBlur={e => e.target.style.borderColor = '#cbd5e1'}
-                    />
-                  </div>
-
-                  {/* 球類分類選擇器 */}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', marginRight: '4px' }}>球類篩選:</span>
-                    {['全部', ...sportsList.map(sport => sport.name).filter(Boolean)].map(sport => (
-                      <button
-                        key={sport}
-                        onClick={() => setDemoSportFilter(sport)}
-                        style={{
-                          padding: '3px 10px',
-                          borderRadius: '20px',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          border: '1px solid',
-                          backgroundColor: demoSportFilter === sport ? '#d97706' : '#f1f5f9',
-                          color: demoSportFilter === sport ? 'white' : '#475569',
-                          borderColor: demoSportFilter === sport ? '#d97706' : '#e2e8f0',
-                        }}
-                      >
-                        {sport}
-                      </button>
-                    ))}
-                  </div>
+            <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
+              {/* 搜尋與篩選列 */}
+              <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* 搜尋框 */}
+                <div style={{ display: 'flex', position: 'relative', alignItems: 'center', flex: 1, minWidth: '200px' }}>
+                  <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px' }} />
+                  <input 
+                    type="text" 
+                    placeholder="搜尋房間名稱或場地..." 
+                    value={demoSearchQuery}
+                    onChange={e => setDemoSearchQuery(e.target.value)}
+                    style={{ 
+                      width: '100%', 
+                      padding: '10px 12px 10px 36px', 
+                      borderRadius: '8px', 
+                      border: '1px solid #cbd5e1', 
+                      fontSize: '13px', 
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
                 </div>
 
-                {/* 房間卡片列表 */}
-                <div 
-                  className="demo-parties-list"
-                  style={{ 
-                    maxHeight: '520px', 
-                    overflowY: 'auto', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '12px', 
-                    paddingRight: '6px',
-                    scrollbarWidth: 'thin'
-                  }}
-                >
-                  {parties
-                    .filter(p => {
-                      const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
-                      const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
-                                            p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
-                      return matchesSport && matchesSearch;
-                    })
-                    .map(p => {
-                      const badgeStyle = getSportBadgeStyle(p.sportName);
-                      return (
-                        <div 
-                          key={p.id} 
-                          style={{ 
-                            padding: '16px', 
-                            backgroundColor: '#ffffff', 
-                            borderRadius: '12px', 
-                            border: '1px solid #e2e8f0',
-                            borderLeft: `4px solid ${badgeStyle.borderColor || '#cbd5e1'}`,
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px', gap: '8px' }}>
-                            <div style={{ fontWeight: '700', fontSize: '14px', color: '#1e293b', lineHeight: '1.4' }}>{p.title}</div>
+                {/* 球類分類選擇器 */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', marginRight: '4px' }}>球類篩選:</span>
+                  {['全部', ...sportsList.map(sport => sport.name).filter(Boolean)].map(sport => (
+                    <button
+                      key={sport}
+                      onClick={() => setNewParty(prev => ({ ...prev, type: sport })) || setDemoSportFilter(sport)}
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '20px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        border: '1px solid',
+                        backgroundColor: demoSportFilter === sport ? '#7995a5' : '#f1f5f9',
+                        color: demoSportFilter === sport ? 'white' : '#475569',
+                        borderColor: demoSportFilter === sport ? '#7995a5' : '#e2e8f0',
+                      }}
+                    >
+                      {sport}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 房間列表 */}
+              <div 
+                className="demo-parties-list"
+                style={{ 
+                  maxHeight: '650px', 
+                  overflowY: 'auto', 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                  gap: '16px', 
+                  paddingRight: '6px',
+                  scrollbarWidth: 'thin'
+                }}
+              >
+                {parties
+                  .filter(p => {
+                    const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
+                    const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
+                                          p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
+                    return matchesSport && matchesSearch;
+                  })
+                  .map(p => {
+                    const badgeStyle = getSportBadgeStyle(p.sportName);
+                    return (
+                      <div 
+                        key={p.id} 
+                        style={{ 
+                          padding: '20px', 
+                          backgroundColor: '#ffffff', 
+                          borderRadius: '12px', 
+                          border: '1px solid #e2e8f0',
+                          borderLeft: `4px solid ${badgeStyle.borderColor || '#cbd5e1'}`,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px', gap: '8px' }}>
+                            <div style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b', lineHeight: '1.4' }}>{p.title}</div>
                             <span style={{ 
                               padding: '2px 8px', 
                               borderRadius: '4px', 
@@ -1817,9 +1816,9 @@ function Admin() {
                             </span>
                           </div>
                           
-                          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#475569' }}>
-                              <span style={{ fontWeight: '600' }}>📍 {p.location}</span>
+                              <span>📍 {p.location}</span>
                             </div>
                             
                             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
@@ -1852,141 +1851,170 @@ function Admin() {
 
                             {/* 修改時間輸入區 */}
                             {editingGameTimeId === p.id && (
-                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                 <input 
                                   type="date" 
                                   value={editGameDate} 
                                   onChange={e => setEditGameDate(e.target.value)} 
-                                  style={{ padding: '3px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', outline: 'none' }}
+                                  style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', outline: 'none' }}
                                 />
                                 <input 
                                   type="text" 
                                   value={editGameTimeSlot} 
                                   placeholder="例如 14:00-16:00"
                                   onChange={e => setEditGameTimeSlot(e.target.value)} 
-                                  style={{ padding: '3px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', width: '110px', outline: 'none' }}
+                                  style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', width: '110px', outline: 'none' }}
                                 />
                                 <button 
                                   onClick={() => handleUpdateGameTime(p.id)}
-                                  style={{ padding: '3px 8px', backgroundColor: '#7995a5', color: 'white', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
+                                  style={{ padding: '4px 8px', backgroundColor: '#7995a5', color: 'white', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
                                 >
                                   儲存
                                 </button>
                                 <button 
                                   onClick={() => setEditingGameTimeId(null)}
-                                  style={{ padding: '3px 8px', backgroundColor: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                                  style={{ padding: '4px 8px', backgroundColor: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
                                 >
                                   取消
                                 </button>
                               </div>
                             )}
                           </div>
-
-                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
-                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '即將開始', '10 分鐘後')}>
-                              招募中
-                            </button>
-                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '已開始', '進行中')}>
-                              已開始
-                            </button>
-                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderColor: '#fcd34d', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '已結束', '昨天')}>
-                              已結束
-                            </button>
-                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px' }} onClick={() => handleUpdatePartyStatus(p.id, '招募中', '今日 20:00')}>
-                              還原
-                            </button>
-                            <button className="btn-outline" style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', borderColor: '#cbd5e1', color: '#64748b' }} onClick={() => handleSetTimeBefore30Min(p.id)}>
-                              B4 30MIN
-                            </button>
-                          </div>
                         </div>
-                      );
-                    })}
 
-                  {parties.filter(p => {
-                    const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
-                    const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
-                                          p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
-                    return matchesSport && matchesSearch;
-                  }).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '13px' }}>
-                      沒有符合搜尋與篩選條件的房間。
-                    </div>
-                  )}
-                </div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                          <button className="btn-outline" style={{ fontSize: '11px', padding: '4px 8px', borderColor: '#fcd34d', borderRadius: '6px', flex: 1 }} onClick={() => handleUpdatePartyStatus(p.id, '即將開始', '10 分鐘後')}>
+                            招募中
+                          </button>
+                          <button className="btn-outline" style={{ fontSize: '11px', padding: '4px 8px', borderColor: '#fcd34d', borderRadius: '6px', flex: 1 }} onClick={() => handleUpdatePartyStatus(p.id, '已開始', '進行中')}>
+                            已開始
+                          </button>
+                          <button className="btn-outline" style={{ fontSize: '11px', padding: '4px 8px', borderColor: '#fcd34d', borderRadius: '6px', flex: 1 }} onClick={() => handleUpdatePartyStatus(p.id, '已結束', '昨天')}>
+                            已結束
+                          </button>
+                          <button className="btn-outline" style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', flex: 1 }} onClick={() => handleUpdatePartyStatus(p.id, '招募中', '今日 20:00')}>
+                            還原
+                          </button>
+                          <button className="btn-outline" style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', borderColor: '#cbd5e1', color: '#64748b', flex: '1 1 100%', marginTop: '4px' }} onClick={() => handleSetTimeBefore30Min(p.id)}>
+                            B4 30MIN (時間前推 30 分鐘)
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {parties.filter(p => {
+                  const matchesSport = demoSportFilter === '全部' || p.sportName === demoSportFilter;
+                  const matchesSearch = p.title.toLowerCase().includes(demoSearchQuery.toLowerCase()) || 
+                                        p.location.toLowerCase().includes(demoSearchQuery.toLowerCase());
+                  return matchesSport && matchesSearch;
+                }).length === 0 && (
+                  <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '13px' }}>
+                    沒有符合搜尋與篩選條件的房間。
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        )}
 
-              {/* 其他展示工具 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                
-                {/* 身份快速切換 */}
-                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <UserCircle size={20} color="#7995a5" /> 模擬玩家信譽設定
-                  </h3>
-                  
+        {/* 信譽積分調整 Tab */}
+        {activeTab === 'demo_reputation' && (
+          <div className="admin-content" style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <h2 style={{ marginBottom: '8px', color: '#1e293b' }}>📈 信譽積分模擬 (Reputation Simulator)</h2>
+            <p style={{ color: '#64748b', marginBottom: '32px' }}>此為開發調測工具，可直接強制調整選定會員的信譽評分，以利測試不同信用門檻的阻擋邏輯。</p>
+
+            <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)' }}>
+              <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                <UserCircle size={24} color="#7995a5" /> 模擬玩家信譽設定
+              </h3>
+              
+              {selectedUser ? (
+                <>
                   {/* 玩家選擇 */}
-                  {selectedUser && (
-                    <>
-                      <div className="form-group" style={{ marginBottom: '16px' }}>
-                        <label className="form-label" style={{ fontSize: '13px' }}>選擇目標玩家</label>
-                        <select 
-                          className="form-input" 
-                          value={selectedUser.id} 
-                          onChange={(e) => {
-                            const user = users.find(u => u.id === parseInt(e.target.value, 10));
-                            setSelectedUser(user);
-                          }}
-                        >
-                          {users.map(u => (
-                            <option key={u.id} value={u.id}>{u.name} (現有積分: {u.reputation})</option>
-                          ))}
-                        </select>
-                      </div>
+                  <div className="form-group" style={{ marginBottom: '24px' }}>
+                    <label className="form-label" style={{ fontSize: '14px', fontWeight: '700', color: '#475569' }}>選擇目標玩家</label>
+                    <select 
+                      className="form-input" 
+                      value={selectedUser.id} 
+                      onChange={(e) => {
+                        const user = users.find(u => u.id === parseInt(e.target.value, 10));
+                        setSelectedUser(user);
+                      }}
+                      style={{ height: '44px', borderRadius: '10px', fontSize: '14px' }}
+                    >
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} (現有積分: {u.reputation})</option>
+                      ))}
+                    </select>
+                  </div>
 
-                      <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '14px', color: '#64748b' }}>目前選擇：<span style={{ fontWeight: '800', color: '#1e293b' }}>{selectedUser.name}</span></div>
-                        <div style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>設定積分：<span style={{ fontWeight: '800', fontSize: '18px', color: '#1e293b' }}>{selectedUser.reputation}</span></div>
-                        <div style={{ fontSize: '13px', fontWeight: '700', color: getReputationStatus(selectedUser.reputation).color, marginTop: '4px' }}>
-                          系統狀態：{getReputationStatus(selectedUser.reputation).label}
+                  {/* 狀態預覽卡 */}
+                  <div style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '13px', color: '#64748b' }}>目前選擇玩家</div>
+                        <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b', marginTop: '4px' }}>{selectedUser.name}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '13px', color: '#64748b' }}>設定信譽積分</div>
+                        <div style={{ fontSize: '24px', fontWeight: '900', color: getReputationStatus(selectedUser.reputation).color, marginTop: '2px' }}>
+                          {selectedUser.reputation} 分
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#ef4444' }} onClick={() => handleUpdateReputation(40)}>
-                          40 (Ban Forever)
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#f59e0b' }} onClick={() => handleUpdateReputation(50)}>
-                          50 (懲罰/觀察)
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#fcd34d' }} onClick={() => handleUpdateReputation(60)}>
-                          60 (警告/禁創房)
-                        </button>
-                        <button className="btn-outline" style={{ fontSize: '13px', borderColor: '#10b981' }} onClick={() => handleUpdateReputation(90)}>
-                          90 (恢復正常)
-                        </button>
-                      </div>
-
-                      <button 
-                        className="btn-outline" 
-                        style={{ width: '100%', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: '#64748b', color: '#64748b' }} 
-                        onClick={() => {
-                          setUsers(users.map(u => ({ ...u, reputation: 90 })));
-                          setSelectedUser({ ...selectedUser, reputation: 90 });
-                          alert('系統已重置為初始狀態');
-                        }}
-                      >
-                        <RefreshCcw size={14} /> 重置所有 Demo 數據
-                      </button>
-                    </>
-                  )}
-                  {!selectedUser && (
-                    <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      目前無玩家資料
                     </div>
-                  )}
-                </div>
+                    <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '14px', paddingTop: '10px', fontSize: '13px', fontWeight: '700', color: getReputationStatus(selectedUser.reputation).color }}>
+                      系統判定狀態：{getReputationStatus(selectedUser.reputation).label}
+                    </div>
+                  </div>
 
-              </div>
+                  {/* 分數快速切換按鈕 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#ef4444', color: '#ef4444', borderRadius: '10px' }} onClick={() => handleUpdateReputation(40)}>
+                      40 (Ban 永久停權)
+                    </button>
+                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#f59e0b', color: '#f59e0b', borderRadius: '10px' }} onClick={() => handleUpdateReputation(50)}>
+                      50 (懲罰觀察期)
+                    </button>
+                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#fcd34d', color: '#b45309', borderRadius: '10px' }} onClick={() => handleUpdateReputation(60)}>
+                      60 (警告/禁創房)
+                    </button>
+                    <button className="btn-outline" style={{ padding: '12px', fontSize: '13px', borderColor: '#10b981', color: '#10b981', borderRadius: '10px' }} onClick={() => handleUpdateReputation(90)}>
+                      90 (恢復正常積分)
+                    </button>
+                  </div>
+
+                  {/* 一鍵重置數據 */}
+                  <button 
+                    className="btn-outline" 
+                    style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderColor: '#64748b', color: '#64748b', borderRadius: '10px', fontWeight: '700' }} 
+                    onClick={async () => {
+                      if (!window.confirm('確定要將所有玩家的信譽積分重置回 90 分嗎？')) return;
+                      try {
+                        await usersApi.resetAllUserReputations();
+                        setUsers(users.map(u => ({ ...u, reputation: 90 })));
+                        if (selectedUser) {
+                          setSelectedUser({ ...selectedUser, reputation: 90 });
+                        }
+                        setUmUsers(prev => prev.map(u => ({ ...u, credit_point: 90 })));
+                        if (umSelectedUser) {
+                          setUmSelectedUser(prev => ({ ...prev, credit_point: 90 }));
+                        }
+                        alert('已成功重置所有玩家的信譽積分為 90 分。');
+                      } catch (error) {
+                        console.error('Reset error:', error);
+                        alert('重置失敗，請確認伺服器狀態。');
+                      }
+                    }}
+                  >
+                    <RefreshCcw size={16} /> 一鍵重置所有玩家信譽 (90分)
+                  </button>
+                </>
+              ) : (
+                <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '40px' }}>
+                  目前無可用的玩家資料以利模擬
+                </div>
+              )}
             </div>
           </div>
         )}
